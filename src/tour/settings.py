@@ -27,8 +27,10 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG')
 
 ALLOWED_HOSTS = ['16.171.8.250', '127.0.0.1']
-CORS_ALLOWED_ORIGINS = ["*"]
-
+CORS_ALLOWED_ORIGINS = [
+    "http://*",
+    "https://*",
+]
 
 
 # Application definition
