@@ -16,7 +16,7 @@ class UserManager(BaseUserManager):
         return user
 
     def create_superuser(self, phone_number, password=None, **kwargs):
-        return self.create_user(phone_number, password, is_staff=True, is_superuser=True, **kwargs)
+        return self.create_user(phone_number,'', password, is_staff=True, is_superuser=True, **kwargs)
 
 
 class User(AbstractBaseUser, PermissionsMixin):

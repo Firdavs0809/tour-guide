@@ -1,4 +1,4 @@
-Django==5.0
+Django
 python-dotenv==1.0.0
 djangorestframework==3.14.0
 oauthlib==3.2.2
