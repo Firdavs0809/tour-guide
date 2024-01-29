@@ -1,0 +1,129 @@
+const imgList = [
+  '/assets/mountains2.png',
+  '/assets/mountains3.png',
+  '/assets/mountains4.png',
+  '/assets/mountains5.png',
+  '/assets/mountains6.png',
+  '/assets/mountains7.png',
+];
+
+const comments = [
+  {
+    id: 1,
+    img: '/assets/person-1.png',
+    name: 'Arlene McCoy',
+    date: '2 October 2012',
+    rating: 4,
+    title: 'Good tour, really well organised',
+    text: "The tour was very well organised. One minus is that you get completely bombarded with information. You also have to stand up for too long at the private entrance to the Tower of London, which leads to a lack of time later. Lunch was the same, too stress, the quality was great but you couldn't enjoy it. I'd like to ask the organisers: please",
+  },
+  {
+    id: 2,
+    img: '/assets/person-2.jpg',
+    name: 'Jenny Velson',
+    date: '3 October 2012',
+    rating: 3,
+    title: 'Informative but disappointed not seeing changing of the guards',
+    text: "The tour was very well organised. One minus is that you get completely bombarded with information. You also have to stand up for too long at the private entrance to the Tower of London, which leads to a lack of time later. Lunch was the same, too stress, the quality was great but you couldn't enjoy it. I'd like to ask the organisers: please",
+  },
+  {
+    id: 3,
+    img: '/assets/person-3.jpg',
+    name: 'Ralph Edvards',
+    date: '4 October 2012',
+    rating: 4,
+    title: 'I love their way of style',
+    text: "The tour was very well organised. One minus is that you get completely bombarded with information. You also have to stand up for too long at the private entrance to the Tower of London, which leads to a lack of time later. Lunch was the same, too stress, the quality was great but you couldn't enjoy it. I'd like to ask the organisers: please",
+  },
+  {
+    id: 4,
+    img: '/assets/person-4.webp',
+    name: 'Courtney Henry',
+    date: '4 October 2012',
+    rating: 4,
+    title: 'Enjoyed very much!',
+    text: "The tour was very well organised. One minus is that you get completely bombarded with information. You also have to stand up for too long at the private entrance to the Tower of London, which leads to a lack of time later. Lunch was the same, too stress, the quality was great but you couldn't enjoy it. I'd like to ask the organisers: please",
+  },
+  {
+    id: 5,
+    img: '/assets/person-1.png',
+    name: 'Devon Lane',
+    date: '4 October 2012',
+    rating: 4,
+    title: 'Nice!!!',
+    text: "The tour was very well organised. One minus is that you get completely bombarded with information. You also have to stand up for too long at the private entrance to the Tower of London, which leads to a lack of time later. Lunch was the same, too stress, the quality was great but you couldn't enjoy it. I'd like to ask the organisers: please",
+  },
+];
+
+const paymentMethods = [
+  {
+    id: 1,
+    name: 'Mastercard',
+    img: '/assets/mastercard.png',
+    url: '#',
+  },
+  {
+    id: 2,
+    name: 'Bitpay',
+    img: '/assets/bitpay.png',
+    url: '#',
+  },
+  {
+    id: 3,
+    name: 'Visa',
+    img: '/assets/visa.png',
+    url: '#',
+  },
+  {
+    id: 4,
+    name: 'American Express',
+    img: '/assets/americanexpress.png',
+    url: '#',
+  },
+  {
+    id: 5,
+    name: 'Discover',
+    img: '/assets/discover.png',
+    url: '#',
+  },
+  {
+    id: 6,
+    name: 'Sofort',
+    img: '/assets/sofort.png',
+    url: '#',
+  },
+  {
+    id: 7,
+    name: 'Google Pay',
+    img: '/assets/gpay.png',
+    url: '#',
+  },
+  {
+    id: 8,
+    name: 'Apple Pay',
+    img: '/assets/apay.png',
+    url: '#',
+  },
+  {
+    id: 9,
+    name: 'PayPal',
+    img: '/assets/paypal.png',
+    url: '#',
+  },
+  {
+    id: 10,
+    name: 'Maestro',
+    img: '/assets/maestro.png',
+    url: '#',
+  },
+];
+
+const gallery = [
+  { id: 1, imgUrl: '/assets/gallery1.png' },
+  { id: 2, imgUrl: '/assets/gallery2.png' },
+  { id: 3, imgUrl: '/assets/gallery3.png' },
+  { id: 4, imgUrl: '/assets/gallery4.png' },
+  { id: 5, imgUrl: '/assets/gallery5.png' },
+  { id: 6, imgUrl: '/assets/gallery6.png' },
+  { id: 7, imgUrl: '/assets/gallery7.png' },
+  { id: 8, imgUrl:
