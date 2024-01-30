@@ -1,6 +1,8 @@
 from django.db import models
 from django.core.validators import FileExtensionValidator
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils import timezone
+
 from ..user.models import User
 
 
@@ -51,6 +53,13 @@ class TourPackage(models.Model):
     number_people = models.IntegerField(default=1, validators=[MinValueValidator(1)])
     price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True,
                                 validators=[MinValueValidator(0)])
+
+    is_expired = models.BooleanField(default=False,)
+
+    def calc_expiration(self):
+        if timezone.now >= self.starting_date:
+            return True
+        return False
 
     def __str__(self):
         return self.title
