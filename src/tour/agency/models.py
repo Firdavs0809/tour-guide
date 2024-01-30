@@ -26,7 +26,7 @@ class Company(models.Model):
 
 
 class City(models.Model):
-    name = models.CharField(max_length=200,)
+    name = models.CharField(max_length=200, )
     is_popular = models.BooleanField(default=False)
 
     def __str__(self):
@@ -38,15 +38,15 @@ class TourPackage(models.Model):
     agency = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='packages')
 
     title = models.CharField(max_length=200, null=True, blank=True)
-    image = models.CharField(null=True,blank=True)
+    image = models.CharField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     language = models.ManyToManyField("Language", related_name='packages', )
 
     starting_date = models.DateField()
     ending_date = models.DateField()
 
-    city_from = models.ForeignKey(City,on_delete=models.CASCADE,related_name='cities_from',null=True)
-    city_to = models.ForeignKey(City,on_delete=models.CASCADE,related_name='cities_to',null=True)
+    city_from = models.ForeignKey(City, on_delete=models.CASCADE, related_name='cities_from', null=True)
+    city_to = models.ForeignKey(City, on_delete=models.CASCADE, related_name='cities_to', null=True)
 
     location = models.CharField(max_length=500, null=True, blank=True)
 
@@ -54,7 +54,10 @@ class TourPackage(models.Model):
     price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True,
                                 validators=[MinValueValidator(0)])
 
-    is_expired = models.BooleanField(default=False,)
+    is_expired = models.BooleanField(default=False, )
+
+    destinations = models.ManyToManyField("Destination")
+    activities = models.ManyToManyField('Activity')
 
     def calc_expiration(self):
         if timezone.now >= self.starting_date:
@@ -64,6 +67,9 @@ class TourPackage(models.Model):
     def __str__(self):
         return self.title
 
+    class Meta:
+        ordering = ['starting_date']
+
 
 # Language Model -> Different languages may be available in tour packages
 class Language(models.Model):
@@ -71,6 +77,30 @@ class Language(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Destination(models.Model):
+    name = models.CharField(max_length=200,null=True,blank=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "destination"
+        verbose_name_plural = "destinations"
+        ordering = ["name"]
+
+
+class Activity(models.Model):
+    name = models.CharField(max_length=200,null=True,blank=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "activity"
+        verbose_name_plural = "activities"
+        ordering = ["name"]
 
 
 # Review Model -> Users can give review about the company
@@ -83,8 +113,4 @@ class Reviews(models.Model):
     def __str__(self):
         return f"{self.user} commented {self.body[:50]}"
 
-# class City(models.Model):
-#     name = models.CharField(max_length=200)
-#
-#     def __str__(self):
-#         return self.name
+
