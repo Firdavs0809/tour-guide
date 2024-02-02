@@ -1,6 +1,8 @@
 import threading
 import random
 import string
+
+from django.contrib.auth.password_validation import validate_password
 from django.db import transaction
 from django.core.validators import RegexValidator
 from datetime import timedelta
@@ -76,7 +78,8 @@ class ActivationSerializer(serializers.Serializer):
     def save(self):
         temp = Temp.objects.filter(phone_number='+' + str(self.validated_data.get("phone_number"))).first()
         if temp and not temp.verified:
-            if int(self.validated_data.get("code")) == int(temp.verified_code) or self.validated_data.get("code") == 99999999:
+            if int(self.validated_data.get("code")) == int(temp.verified_code) or self.validated_data.get(
+                    "code") == 99999999:
                 with transaction.atomic():
                     try:
                         root = User.objects.create_user(

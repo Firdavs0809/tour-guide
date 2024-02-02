@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import TourPackage, Reviews, Language, Company, City, Destination, Activity
+from .models import TourPackage, Reviews, Language, Company, City, Destination, Activity, Feature
 
 admin.site.register(TourPackage)
 admin.site.register(Reviews)
@@ -8,3 +8,4 @@ admin.site.register(Company)
 admin.site.register(City)
 admin.site.register(Destination)
 admin.site.register(Activity)
+admin.site.register(Feature)

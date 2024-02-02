@@ -28,6 +28,7 @@ class Company(models.Model):
 class City(models.Model):
     name = models.CharField(max_length=200, )
     is_popular = models.BooleanField(default=False)
+    features = models.ManyToManyField("Feature",)
 
     def __str__(self):
         return self.name
@@ -101,6 +102,13 @@ class Activity(models.Model):
         verbose_name = "activity"
         verbose_name_plural = "activities"
         ordering = ["name"]
+
+
+class Feature(models.Model):
+    name = models.CharField(max_length=200,)
+
+    def __str__(self):
+        return self.name
 
 
 # Review Model -> Users can give review about the company

@@ -15,43 +15,41 @@ from tour.agency.models import City
 class TourPackageListAPIView(ListAPIView):
     queryset = TourPackage.objects.all()
     serializer_class = TourPackageSerializer
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['title', 'city_to__name',]
 
-    pagination_class = CustomPagination
+    # pagination_class = CustomPagination
+    # filter_backends = [filters.SearchFilter]
+    # search_fields = ['title', 'city_to__name', ]
+
+    def get_queryset(self):
+        return TourPackage.objects.filter(city_to__in=City.objects.filter(is_popular=True))[:4]
 
 
 class TourPackageDetailAPIView(RetrieveAPIView):
     queryset = TourPackage.objects.all()
     serializer_class = TourPackageSerializer
 
-    # filter_backends = [filters.SearchFilter]
-    # search_fields = ['title', 'city_from', 'city_to']
-
     def get_serializer_context(self):
         data = super().get_serializer_context()
-        serializer = self.serializer_class(TourPackage.objects.filter(
-            agency=self.get_object().agency, is_expired=False),
-            many=True
-        )
+        serializer_related_city = self.serializer_class(
+            TourPackage.objects.filter(
+                Q(agency=self.get_object().agency, is_expired=False) & ~Q(id=self.get_object().id)), many=True)
+        serializer_related_period = self.serializer_class(
+            TourPackage.objects.filter(Q(starting_date__gte=self.get_object().starting_date,
+                                         ending_date__lte=self.get_object().ending_date, is_expired=False) & ~Q(
+                id=self.get_object().id)), many=True)
 
-        data['related_data'] = serializer.data
+        data['tours_in_period'] = serializer_related_period.data
+        data['tours_in_city'] = serializer_related_city.data
         return data
-
-    # def get(self,request,*args,**kwargs):
-    #     serializer = self.serializer_class(self.get_object())
-    #     data = serializer.data
-    #     data['related_data']=self.serializer_class(TourPackage.objects.filter(agency=self.get_object().agency),many=True).data
-    #     return Response(data)
 
 
 class TourPackageSearchAPIView(APIView):
 
     def get(self, request):
-        search = request.query_params.get('search')
+        city = request.query_params.get('city')
         # if search value is city name
-        if search:
-            if City.objects.filter(name=search).exists():
+        if city:
+            if City.objects.filter(name=city).exists():
 
                 duration_from, duration_to, activities, destinations = None, None, None, None
                 if request.query_params.get('duration_from') and request.query_params.get('duration_to'):
@@ -65,7 +63,7 @@ class TourPackageSearchAPIView(APIView):
                 # filtering against city name of the tour
                 packages = TourPackage.objects.filter(
                     Q(is_expired=False) &
-                    Q(city_to__name__iexact=search)
+                    Q(city_to__name__iexact=city)
                 )
 
                 # filtering against duration of the tour
@@ -104,11 +102,4 @@ class TourPackageSearchAPIView(APIView):
 
                 serializer = TourPackageSerializer(packages, many=True)
 
-            # otherwise
-            else:
-                packages = TourPackage.objects.filter(Q(title__icontains=search) | Q(city_to__name__iexact=search))
-
-                serializer = TourPackageSerializer(packages, many=True)
-            return Response(serializer.data)
-        serializer = TourPackageSerializer(TourPackage.objects.all(), many=True)
-        return Response(serializer.data)
+        return Response([])

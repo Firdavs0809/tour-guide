@@ -1,11 +1,14 @@
 import json
 from django.utils.translation import gettext_lazy as _
 from rest_framework.exceptions import ValidationError
+from rest_framework.parsers import FileUploadParser
 from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from oauthlib.oauth2 import Server
+
+from tour.oauth2.models import Application
 from .serializers import (SignInSerializer, RefreshTokenSerializer, LogoutSerializer,
                           RegistrationSerializer, ActivationSerializer)
 from tour.oauth2.oauth2_validators import OAuth2V1Validator, OAuth2FrontValidator

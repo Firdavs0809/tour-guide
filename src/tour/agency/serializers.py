@@ -1,14 +1,15 @@
 from rest_framework import serializers
-
 from tour.agency.models import TourPackage
-
 from tour.agency.models import City
-
 from tour.agency.models import Company
-
 from tour.agency.models import Destination
+from tour.agency.models import Activity,Feature
 
-from tour.agency.models import Activity
+
+class FeatureSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Feature
+        fields = ['name']
 
 
 class DestinationSerializer(serializers.ModelSerializer):
@@ -24,9 +25,11 @@ class ActivitySerializer(serializers.ModelSerializer):
 
 
 class CitySerializer(serializers.ModelSerializer):
+    features = FeatureSerializer(many=True,read_only=True)
+
     class Meta:
         model = City
-        fields = ['name', 'is_popular', ]
+        fields = ['name', 'is_popular', 'features']
 
 
 class CompanySerializer(serializers.ModelSerializer):
@@ -51,6 +54,6 @@ class TourPackageSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
-        if self.context.get('related_data'):
-            ret['related_data'] = self.context['related_data']
+        ret['tours_in_city'] = self.context.get('tours_in_city')
+        ret['tours_in_period'] = self.context.get('tours_in_period')
         return ret
