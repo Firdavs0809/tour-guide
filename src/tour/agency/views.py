@@ -21,7 +21,7 @@ class TourPackageListAPIView(ListAPIView):
     # search_fields = ['title', 'city_to__name', ]
 
     def get_queryset(self):
-        return TourPackage.objects.filter(city_to__in=City.objects.filter(is_popular=True))[:4]
+        return TourPackage.objects.filter(city_to__in=City.objects.filter(is_popular=True))
 
 
 class TourPackageDetailAPIView(RetrieveAPIView):
