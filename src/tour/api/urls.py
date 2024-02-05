@@ -7,6 +7,6 @@ app_name = "api"
 
 urlpatterns = [
     path("v1/", include(v1_urls)),
-    path('v1/packages/',include(package_urls)),
+    path('v1/',include(package_urls)),
     path('v1/user/',include(user_urls)),
 ]

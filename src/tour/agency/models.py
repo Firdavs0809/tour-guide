@@ -1,3 +1,4 @@
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.core.validators import FileExtensionValidator
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -40,6 +41,7 @@ class TourPackage(models.Model):
 
     title = models.CharField(max_length=200, null=True, blank=True)
     image = models.CharField(null=True, blank=True)
+    images = ArrayField(models.URLField(blank=True, null=True), size=10,null=True,blank=True)
     description = models.TextField(null=True, blank=True)
     language = models.ManyToManyField("Language", related_name='packages', )
 

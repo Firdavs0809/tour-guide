@@ -13,7 +13,7 @@ class OAuth2Authentication(BaseAuthentication):
         """
 
         oauthlib_core = get_oauthlib_core()
-        valid, r = oauthlib_core.verify_request(request, scopes=[])
+        valid, r = oauthlib_core.verify_request(request, scopes=["*"])
         if valid:
             return r.user, r.access_token
         else:

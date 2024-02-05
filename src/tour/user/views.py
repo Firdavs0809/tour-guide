@@ -4,16 +4,28 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 from .serializers import ProfilePageSerializer, ForgetPasswordSerializer, ResetPasswordSerializer
+from ..oauth2.authentication import OAuth2Authentication
 
 
 class ProfilePageView(GenericAPIView):
     serializer_class = ProfilePageSerializer
-    authentication_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (OAuth2Authentication,)
 
     def get(self, request):
-        serializer = self.serializer_class(instance=request.user)
+        profile = request.user.profile
+        serializer = self.serializer_class(instance=profile)
+        return Response({'data': serializer.data})
+
+    def put(self, request):
+        profile = request.user.profile
+        serializer = self.serializer_class(instance=profile, data=request.data)
         serializer.is_valid(raise_exception=True)
-        return Response(serializer.data)
+        return Response({"message": 'success', 'detail': 'Updated successfully!'})
+
+    def delete(self, request):
+        user = request.user
+        user.delete()
 
 
 # Forget password
