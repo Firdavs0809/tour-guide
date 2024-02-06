@@ -15,6 +15,7 @@ class Company(models.Model):
     average_rating = models.DecimalField(max_digits=3, decimal_places=1, editable=False, null=True, blank=True)
     total_rating = models.IntegerField(default=0, editable=False)
     number_of_rating = models.IntegerField(default=0, editable=False)
+    tg_username = models.CharField(max_length=200,null=True,blank=True)
 
     def calculate_rating(self, user_rating):
         self.total_rating += user_rating
@@ -71,7 +72,7 @@ class TourPackage(models.Model):
         return self.title
 
     class Meta:
-        ordering = ['starting_date']
+        ordering = ['-starting_date']
 
 
 # Language Model -> Different languages may be available in tour packages

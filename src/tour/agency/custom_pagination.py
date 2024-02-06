@@ -1,4 +1,4 @@
-from rest_framework.pagination import PageNumberPagination
+from rest_framework.pagination import PageNumberPagination, CursorPagination
 from rest_framework.response import Response
 
 
@@ -20,3 +20,9 @@ class CustomPagination(PageNumberPagination):
             'count': self.page.paginator.count,
             'data': data
         })
+
+
+class CustomCursorPagination(CursorPagination):
+    ordering = '-starting_date'
+    page_size = 5
+    page_size_query_param = 'page_size'

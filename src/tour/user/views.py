@@ -3,12 +3,12 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
-from .serializers import ProfilePageSerializer, ForgetPasswordSerializer, ResetPasswordSerializer
+from .serializers import ProfileSerializer, ForgetPasswordSerializer, ResetPasswordSerializer
 from ..oauth2.authentication import OAuth2Authentication
 
 
 class ProfilePageView(GenericAPIView):
-    serializer_class = ProfilePageSerializer
+    serializer_class = ProfileSerializer
     permission_classes = (IsAuthenticated,)
     authentication_classes = (OAuth2Authentication,)
 

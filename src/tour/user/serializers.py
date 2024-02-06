@@ -102,7 +102,7 @@ class ResetPasswordSerializer(serializers.ModelSerializer):
         return self.instance
 
 
-class ProfilePageSerializer(serializers.ModelSerializer):
+class ProfileSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(max_length=200)
     phone_number = serializers.CharField(max_length=13)
     first_name = serializers.CharField(max_length=200)

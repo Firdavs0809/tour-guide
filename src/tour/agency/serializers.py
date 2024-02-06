@@ -5,6 +5,8 @@ from tour.agency.models import Company
 from tour.agency.models import Destination
 from tour.agency.models import Activity, Feature
 
+from tour.user.serializers import ProfileSerializer
+
 
 class FeatureSerializer(serializers.ModelSerializer):
     class Meta:
@@ -35,7 +37,7 @@ class CitySerializer(serializers.ModelSerializer):
 class CompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
-        fields = ['name', ]
+        exclude = ['id','total_rating']
 
 
 class TourPackageSerializer(serializers.ModelSerializer):
@@ -54,6 +56,10 @@ class TourPackageSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
+
+        if self.context.get("featured_tours"):
+            ret['featured_tours'] = self.context.get("featured_tours")
+
         if self.context.get('tours_in_city'):
             ret['tours_in_city'] = self.context.get('tours_in_city')
             ret['tours_in_period'] = self.context.get('tours_in_period')
@@ -62,3 +68,7 @@ class TourPackageSerializer(serializers.ModelSerializer):
 
 class ImageUploadSerializer(serializers.Serializer):
     file = serializers.CharField(max_length=500, required=True, write_only=True)
+
+
+class ConfirmBookingSerializer(serializers.Serializer):
+    tg_username = serializers.CharField(max_length=200, required=True, write_only=True)

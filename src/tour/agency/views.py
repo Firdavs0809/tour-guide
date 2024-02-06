@@ -5,15 +5,22 @@ from django.db.models import Q
 from requests import Request
 from rest_framework import filters, status
 from rest_framework.exceptions import ValidationError
+from rest_framework.filters import OrderingFilter
 from rest_framework.generics import RetrieveAPIView, GenericAPIView
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from tour.agency.models import TourPackage
 from tour.agency.serializers import TourPackageSerializer, ImageUploadSerializer
-from tour.agency.custom_pagination import CustomPagination
+from tour.agency.custom_pagination import CustomPagination, CustomCursorPagination
 
-from tour.agency.models import City
+from tour.agency.models import City, User
+
+from tour.agency.serializers import ConfirmBookingSerializer
+
+from tour.agency.telegram_bot_setup import send_message
+
+from tour.agency.serializers import CitySerializer, CompanySerializer
 
 
 class TourPackageListAPIView(ListAPIView):
@@ -28,6 +35,11 @@ class TourPackageListAPIView(ListAPIView):
         city = self.request.query_params.get('city', )
         packages = TourPackage.objects.filter(city_to__in=City.objects.filter(name=city), is_expired=False)
         return packages
+
+    def get_serializer_context(self):
+        data = super().get_serializer_context()
+        data['featured_tours'] = self.serializer_class(TourPackage.objects.filter(is_expired=False), many=True).data
+        return data
 
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
@@ -55,20 +67,21 @@ class TourPackageDetailAPIView(RetrieveAPIView):
         return data
 
 
-class ConfirmBookingAPIView(GenericAPIView):
-
-    def post(self, request):
-        pass
-
-
-class TourPackageSearchAPIView(APIView):
+class TourPackageSearchAPIView(GenericAPIView):
+    queryset = TourPackage.objects.all()
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['starting_date']
+    ordering = ['starting_date']
 
     def get(self, request):
+
+        queryset = self.filter_queryset(queryset=self.get_queryset())
         city, starting_date, ending_date, number_of_people = request.query_params.get('city'), request.query_params.get(
             'starting_date'), request.query_params.get('ending_date'), request.query_params.get('number_of_people', )
         # if search value is city name
         if city and starting_date and ending_date:
-            if City.objects.filter(name=city).exists():
+            city = City.objects.filter(name=city)
+            if city.exists():
                 duration_from, duration_to, activities, destinations = None, None, None, None
                 if request.query_params.get('duration_from') and request.query_params.get('duration_to'):
                     duration_from = request.query_params.get('duration_from')
@@ -83,12 +96,11 @@ class TourPackageSearchAPIView(APIView):
 
                 # filtering against city name of the tour
                 packages = TourPackage.objects.filter(
-                    Q(is_expired=False) &
-                    Q(city_to__name__iexact=city) &
-                    Q(starting_date__gte=temp_start - timedelta(days=3),
-                      starting_date__lte=temp_start + timedelta(days=3)) |
-                    Q(ending_date__gte=temp_end - timedelta(days=3),
-                      ending_date__lte=temp_end + timedelta(days=3))
+                    Q(is_expired=False, city_to__in=city) &
+                    Q(starting_date__gte=temp_start - timedelta(days=5),
+                      starting_date__lte=temp_start + timedelta(days=5)) |
+                    Q(ending_date__gte=temp_end - timedelta(days=5),
+                      ending_date__lte=temp_end + timedelta(days=5))
                 )
                 # filtering against duration of the tour
                 if duration_from and duration_to:
@@ -124,8 +136,6 @@ class TourPackageSearchAPIView(APIView):
                             filtered_packages.append(package)
                     packages = filtered_packages
 
-                if starting_date:
-                    pass
                 serializer = TourPackageSerializer(packages, many=True)
                 return Response(data=serializer.data)
 
@@ -147,3 +157,27 @@ class ImageUploadView(APIView):
             package.images = [file, ]
             package.save()
         return Response({"success": True, 'message': 'Image was uploaded successfully!'})
+
+
+# Confirm Booking API View
+class ConfirmBookingAPIView(GenericAPIView):
+    serializer_class = ConfirmBookingSerializer
+
+    def post(self, request, pk):
+        agency = TourPackage.objects.get(pk=pk).agency
+        serializer = CompanySerializer(agency)
+
+        return Response({'data':serializer.data})
+
+
+# get city view
+class GetCityAPIView(GenericAPIView):
+
+    def get(self, request):
+        city = request.query_params.get('city', None)
+        print(request.query_params)
+        print(city)
+        if city:
+            city_list = [city.name for city in City.objects.filter(name__icontains=city)]
+            return Response({"city_list": city_list})
+        return Response([])
