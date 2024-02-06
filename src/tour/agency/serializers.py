@@ -37,7 +37,7 @@ class CitySerializer(serializers.ModelSerializer):
 class CompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
-        exclude = ['id','total_rating']
+        exclude = ['id', 'total_rating']
 
 
 class TourPackageSerializer(serializers.ModelSerializer):
@@ -53,17 +53,6 @@ class TourPackageSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         return attrs
-
-    def to_representation(self, instance):
-        ret = super().to_representation(instance)
-
-        if self.context.get("featured_tours"):
-            ret['featured_tours'] = self.context.get("featured_tours")
-
-        if self.context.get('tours_in_city'):
-            ret['tours_in_city'] = self.context.get('tours_in_city')
-            ret['tours_in_period'] = self.context.get('tours_in_period')
-        return ret
 
 
 class ImageUploadSerializer(serializers.Serializer):

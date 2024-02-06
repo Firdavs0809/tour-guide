@@ -16,11 +16,7 @@ from tour.agency.custom_pagination import CustomPagination, CustomCursorPaginati
 
 from tour.agency.models import City, User
 
-from tour.agency.serializers import ConfirmBookingSerializer
-
-from tour.agency.telegram_bot_setup import send_message
-
-from tour.agency.serializers import CitySerializer, CompanySerializer
+from tour.agency.serializers import ConfirmBookingSerializer, CitySerializer, CompanySerializer
 
 
 class TourPackageListAPIView(ListAPIView):
@@ -36,14 +32,6 @@ class TourPackageListAPIView(ListAPIView):
         packages = TourPackage.objects.filter(city_to__in=City.objects.filter(name=city), is_expired=False)
         return packages
 
-    def get_serializer_context(self):
-        data = super().get_serializer_context()
-        data['featured_tours'] = self.serializer_class(TourPackage.objects.filter(is_expired=False), many=True).data
-        return data
-
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
-
 
 class TourPackageDetailAPIView(RetrieveAPIView):
     queryset = TourPackage.objects.all()
@@ -51,20 +39,32 @@ class TourPackageDetailAPIView(RetrieveAPIView):
 
     def get_serializer_context(self):
         data = super().get_serializer_context()
-        serializer_related_city = self.serializer_class(
-            TourPackage.objects.filter(
-                Q(agency=self.get_object().agency, is_expired=False) & ~Q(id=self.get_object().id)), many=True)
-        serializer_related_period = self.serializer_class(
-            TourPackage.objects.filter(Q(starting_date__gte=self.get_object().starting_date,
-                                         starting_date__lte=self.get_object().starting_date + timedelta(days=3),
-                                         ending_date__lte=self.get_object().ending_date + timedelta(days=3),
-                                         ending_date__gte=self.get_object().ending_date - timedelta(days=3),
-                                         is_expired=False) & ~Q(
-                id=self.get_object().id)), many=True)
-
-        data['tours_in_period'] = serializer_related_period.data
-        data['tours_in_city'] = serializer_related_city.data
         return data
+
+
+class GetRelatedTours(GenericAPIView):
+    serializer_class = TourPackageSerializer
+
+    def get(self, request):
+        obj = TourPackage.objects.get(id=request.query_params.get('id'))
+        serializer_related_city = self.serializer_class(TourPackage.objects.filter(
+            Q(city_to=obj.city_to, is_expired=False) & ~Q(id=obj.id)), many=True).data
+        serializer_related_period = self.serializer_class(TourPackage.objects.filter(
+            Q(starting_date__gte=obj.starting_date - timedelta(days=5),
+              starting_date__lte=obj.starting_date + timedelta(days=5),
+              ending_date__lte=obj.ending_date + timedelta(days=5),
+              ending_date__gte=obj.ending_date - timedelta(days=5), is_expired=False) & ~Q(id=obj.id)), many=True).data
+        return Response({'related_city': serializer_related_city, 'related_period': serializer_related_period})
+
+
+# Get featured tours
+class GetFeaturedTours(GenericAPIView):
+    serializer_class = TourPackageSerializer
+
+    def get(self, request):
+        queryset = TourPackage.objects.filter(is_featured=True)
+        featured_tours = self.serializer_class(queryset, many=True).data
+        return Response({'featured_tours': featured_tours, })
 
 
 class TourPackageSearchAPIView(GenericAPIView):
@@ -95,10 +95,10 @@ class TourPackageSearchAPIView(GenericAPIView):
                 temp_end = datetime.strptime(ending_date, '%Y-%m-%d').date()
 
                 # filtering against city name of the tour
-                packages = TourPackage.objects.filter(
+                packages = queryset.filter(
                     Q(is_expired=False, city_to__in=city) &
                     Q(starting_date__gte=temp_start - timedelta(days=5),
-                      starting_date__lte=temp_start + timedelta(days=5)) |
+                      starting_date__lte=temp_start + timedelta(days=5)) &
                     Q(ending_date__gte=temp_end - timedelta(days=5),
                       ending_date__lte=temp_end + timedelta(days=5))
                 )
@@ -167,7 +167,7 @@ class ConfirmBookingAPIView(GenericAPIView):
         agency = TourPackage.objects.get(pk=pk).agency
         serializer = CompanySerializer(agency)
 
-        return Response({'data':serializer.data})
+        return Response({'data': serializer.data})
 
 
 # get city view

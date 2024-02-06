@@ -15,7 +15,7 @@ class Company(models.Model):
     average_rating = models.DecimalField(max_digits=3, decimal_places=1, editable=False, null=True, blank=True)
     total_rating = models.IntegerField(default=0, editable=False)
     number_of_rating = models.IntegerField(default=0, editable=False)
-    tg_username = models.CharField(max_length=200,null=True,blank=True)
+    tg_username = models.CharField(max_length=200, null=True, blank=True)
 
     def calculate_rating(self, user_rating):
         self.total_rating += user_rating
@@ -30,7 +30,7 @@ class Company(models.Model):
 class City(models.Model):
     name = models.CharField(max_length=200, )
     is_popular = models.BooleanField(default=False)
-    features = models.ManyToManyField("Feature",)
+    features = models.ManyToManyField("Feature", )
 
     def __str__(self):
         return self.name
@@ -42,7 +42,7 @@ class TourPackage(models.Model):
 
     title = models.CharField(max_length=200, null=True, blank=True)
     image = models.CharField(null=True, blank=True)
-    images = ArrayField(models.URLField(blank=True, null=True), size=10,null=True,blank=True)
+    images = ArrayField(models.URLField(blank=True, null=True), size=10, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     language = models.ManyToManyField("Language", related_name='packages', )
 
@@ -59,6 +59,7 @@ class TourPackage(models.Model):
                                 validators=[MinValueValidator(0)])
 
     is_expired = models.BooleanField(default=False, )
+    is_featured = models.BooleanField(default=False, )
 
     destinations = models.ManyToManyField("Destination")
     activities = models.ManyToManyField('Activity')
@@ -84,7 +85,7 @@ class Language(models.Model):
 
 
 class Destination(models.Model):
-    name = models.CharField(max_length=200,null=True,blank=True)
+    name = models.CharField(max_length=200, null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -96,7 +97,7 @@ class Destination(models.Model):
 
 
 class Activity(models.Model):
-    name = models.CharField(max_length=200,null=True,blank=True)
+    name = models.CharField(max_length=200, null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -108,7 +109,7 @@ class Activity(models.Model):
 
 
 class Feature(models.Model):
-    name = models.CharField(max_length=200,)
+    name = models.CharField(max_length=200, )
 
     def __str__(self):
         return self.name
@@ -123,5 +124,3 @@ class Reviews(models.Model):
 
     def __str__(self):
         return f"{self.user} commented {self.body[:50]}"
-
-
