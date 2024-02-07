@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import TourPackageListAPIView, TourPackageDetailAPIView, TourPackageSearchAPIView, GetCityAPIView, \
-    ImageUploadView, ConfirmBookingAPIView,GetRelatedTours,GetFeaturedTours
+    ImageUploadView, ConfirmBookingAPIView,GetRelatedToursAPIView,GetFeaturedToursAPIView,GetFiltersAPIView
 
 urlpatterns = [
     path('packages/top/', TourPackageListAPIView.as_view(), name='package-top'),
@@ -13,7 +13,8 @@ urlpatterns = [
     path('packages/<int:pk>/confirm-booking/', ConfirmBookingAPIView.as_view(), name='confirm-booking'),
 
     path('city/', GetCityAPIView.as_view(), name='get-city-name'),
-    path('related-tours/', GetRelatedTours.as_view(), name='get-related-tours'),
-    path('featured-tours/', GetFeaturedTours.as_view(), name='get-related-tours'),
+    path('related-tours/', GetRelatedToursAPIView.as_view(), name='get-related-tours'),
+    path('featured-tours/', GetFeaturedToursAPIView.as_view(), name='get-related-tours'),
+    path('filters/', GetFiltersAPIView.as_view(), name='get-filters'),
 
 ]

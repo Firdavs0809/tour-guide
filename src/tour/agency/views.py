@@ -16,7 +16,8 @@ from tour.agency.custom_pagination import CustomPagination, CustomCursorPaginati
 
 from tour.agency.models import City, User
 
-from tour.agency.serializers import ConfirmBookingSerializer, CitySerializer, CompanySerializer
+from tour.agency.serializers import ConfirmBookingSerializer, CitySerializer, CompanySerializer, FeatureSerializer, \
+    DestinationSerializer
 
 
 class TourPackageListAPIView(ListAPIView):
@@ -42,7 +43,7 @@ class TourPackageDetailAPIView(RetrieveAPIView):
         return data
 
 
-class GetRelatedTours(GenericAPIView):
+class GetRelatedToursAPIView(GenericAPIView):
     serializer_class = TourPackageSerializer
 
     def get(self, request):
@@ -58,7 +59,7 @@ class GetRelatedTours(GenericAPIView):
 
 
 # Get featured tours
-class GetFeaturedTours(GenericAPIView):
+class GetFeaturedToursAPIView(GenericAPIView):
     serializer_class = TourPackageSerializer
 
     def get(self, request):
@@ -155,7 +156,7 @@ class ImageUploadView(APIView):
                                   code=status.HTTP_404_NOT_FOUND)
         except AttributeError:
             package.images = [file, ]
-            package.save()
+        package.save()
         return Response({"success": True, 'message': 'Image was uploaded successfully!'})
 
 
@@ -180,4 +181,52 @@ class GetCityAPIView(GenericAPIView):
         if city:
             city_list = [city.name for city in City.objects.filter(name__icontains=city)]
             return Response({"city_list": city_list})
+        return Response([])
+
+
+# get filters view
+class GetFiltersAPIView(GenericAPIView):
+
+    def get(self, request):
+        city = request.query_params.get('city')
+        if city:
+            city = City.objects.get(name=city)
+            features = [feature.name for feature in city.features.all()]
+
+            activities = []
+            destinations = []
+            durations = []
+
+            packages = TourPackage.objects.filter(city_to=city)
+            for package in packages:
+                for dest in package.destinations.all():
+                    if dest.name not in destinations:
+                        destinations.append(dest.name)
+
+                for activity in package.activities.all():
+                    if activity.name not in activities:
+                        activities.append(activity.name)
+
+                if (package.ending_date - package.starting_date).days not in durations:
+                    durations.append((package.ending_date - package.starting_date).days)
+
+            durations_ = []
+
+            # checking if duration period is less than 4
+            if len(durations) <= 3:
+                range_num = len(durations)
+            else:
+                range_num = 4
+
+            # forming duration filter
+            for _ in range(range_num):
+                try:
+                    durations_.append({"start": durations_[-1].get('end'), 'end': min(durations)})
+                except IndexError:
+                    durations_.append({"start": 0, 'end': min(durations)})
+                finally:
+                    durations.remove(min(durations))
+
+            return Response(
+                {"activities": activities, 'destinations': destinations, 'features': features, 'durations': durations_})
         return Response([])
