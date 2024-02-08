@@ -20,6 +20,7 @@ from tour.agency.serializers import ConfirmBookingSerializer, CitySerializer, Co
     DestinationSerializer
 from .telegram_bot_setup import send_message
 
+
 class TourPackageListAPIView(ListAPIView):
     queryset = TourPackage.objects.all()
     serializer_class = TourPackageSerializer
@@ -179,7 +180,7 @@ class ConfirmBookingAPIView(GenericAPIView):
                    f"phone_number: +998907689098")
 
         try:
-            send_message(message,package.agency.chat_id)
+            send_message(message, package.agency.chat_id)
         except:
             raise ValidationError({'detail': "Agency is not a member of the bot."})
 
@@ -187,7 +188,7 @@ class ConfirmBookingAPIView(GenericAPIView):
 
 
 # get city view
-class GetCityAPIView(GenericAPIView):
+class GetCityMatchAPIView(GenericAPIView):
 
     def get(self, request):
         city = request.query_params.get('city', None)
@@ -197,6 +198,13 @@ class GetCityAPIView(GenericAPIView):
             city_list = [city.name for city in City.objects.filter(name__icontains=city)]
             return Response({"city_list": city_list})
         return Response([])
+
+
+class GetPopularCityAPIView(GenericAPIView):
+
+    def get(self, request):
+        city_list = [city.name for city in City.objects.filter(is_popular=True)]
+        return Response({'city_list':city_list})
 
 
 # get filters view
