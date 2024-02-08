@@ -18,7 +18,7 @@ from tour.agency.models import City, User
 
 from tour.agency.serializers import ConfirmBookingSerializer, CitySerializer, CompanySerializer, FeatureSerializer, \
     DestinationSerializer
-
+from .telegram_bot_setup import send_message
 
 class TourPackageListAPIView(ListAPIView):
     queryset = TourPackage.objects.all()
@@ -165,10 +165,25 @@ class ConfirmBookingAPIView(GenericAPIView):
     serializer_class = ConfirmBookingSerializer
 
     def post(self, request, pk):
-        agency = TourPackage.objects.get(pk=pk).agency
-        serializer = CompanySerializer(agency)
+        try:
+            package = TourPackage.objects.get(pk=pk)
+        except TourPackage.DoesNotExist:
+            raise ValidationError({"success": False, "detail": "Tour Package not Found"})
 
-        return Response({'data': serializer.data})
+        serializer = CompanySerializer(package.agency)
+
+        message = (f"You have a client!\n"
+                   f"Tour package: {package.title}\n"
+                   f"user: Firdavs Jalolov\n"
+                   f"username: @first_ac_firdavs\n"
+                   f"phone_number: +998907689098")
+
+        try:
+            send_message(message,package.agency.chat_id)
+        except:
+            raise ValidationError({'detail': "Agency is not a member of the bot."})
+
+        return Response({'agency': serializer.data})
 
 
 # get city view

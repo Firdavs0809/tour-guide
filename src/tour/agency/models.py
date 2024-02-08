@@ -7,6 +7,15 @@ from django.utils import timezone
 from ..user.models import User
 
 
+class Hotel(models.Model):
+    name = models.CharField(max_length=200, null=True, blank=True)
+    stars = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)], null=True, blank=True)
+    link = models.CharField(max_length=250, null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Company(models.Model):
     name = models.CharField(max_length=200, blank=False, null=False)
     logo = models.CharField(null=True, blank=True)
@@ -16,6 +25,7 @@ class Company(models.Model):
     total_rating = models.IntegerField(default=0, editable=False)
     number_of_rating = models.IntegerField(default=0, editable=False)
     tg_username = models.CharField(max_length=200, null=True, blank=True)
+    chat_id = models.CharField(max_length=13, null=True, blank=True)
 
     def calculate_rating(self, user_rating):
         self.total_rating += user_rating
@@ -39,6 +49,7 @@ class City(models.Model):
 # Agency Tour Packages model
 class TourPackage(models.Model):
     agency = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='packages')
+    hotel = models.ForeignKey(Hotel,on_delete=models.CASCADE,related_name='packages',null=True)
 
     title = models.CharField(max_length=200, null=True, blank=True)
     image = models.CharField(null=True, blank=True)

@@ -1,10 +1,11 @@
 from rest_framework import status
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, get_object_or_404
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 from .serializers import ProfileSerializer, ForgetPasswordSerializer, ResetPasswordSerializer
 from ..oauth2.authentication import OAuth2Authentication
+from .models import User
 
 
 class ProfilePageView(GenericAPIView):
@@ -45,8 +46,9 @@ class ResetPasswordView(GenericAPIView):
     permission_classes = (AllowAny,)
     serializer_class = ResetPasswordSerializer
 
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
+    def put(self, request, *args, **kwargs):
+        user = get_object_or_404(queryset=User,phone_number=request.data.get('phone_number'))
+        serializer = self.serializer_class(instance=user,data=request.data)
         serializer.is_valid(raise_exception=True)
-        # user = serializer.save()
+        serializer.save()
         return Response({"password": 'Password reset successful!', 'detail': 'success'}, status=status.HTTP_200_OK)
