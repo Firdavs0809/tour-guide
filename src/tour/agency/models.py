@@ -4,7 +4,7 @@ from django.core.validators import FileExtensionValidator
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 
-from ..user.models import User
+# from ..user.models import User
 
 
 class Hotel(models.Model):
@@ -49,7 +49,7 @@ class City(models.Model):
 # Agency Tour Packages model
 class TourPackage(models.Model):
     agency = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='packages')
-    hotel = models.ForeignKey(Hotel,on_delete=models.CASCADE,related_name='packages',null=True)
+    hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE, related_name='packages', null=True)
 
     title = models.CharField(max_length=200, null=True, blank=True)
     image = models.CharField(null=True, blank=True)
@@ -121,17 +121,18 @@ class Activity(models.Model):
 
 class Feature(models.Model):
     name = models.CharField(max_length=200, )
+    icon = models.CharField(max_length=200, blank=True, null=True)
 
     def __str__(self):
         return self.name
 
 
 # Review Model -> Users can give review about the company
-class Reviews(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews')
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='reviews')
-    body = models.TextField(max_length=500, blank=True, null=True)
-    stars_given = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
-
-    def __str__(self):
-        return f"{self.user} commented {self.body[:50]}"
+# class Reviews(models.Model):
+#     user = models.ForeignKey("User", on_delete=models.CASCADE, related_name='reviews')
+#     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='reviews')
+#     body = models.TextField(max_length=500, blank=True, null=True)
+#     stars_given = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+#
+#     def __str__(self):
+#         return f"{self.user} commented {self.body[:50]}"

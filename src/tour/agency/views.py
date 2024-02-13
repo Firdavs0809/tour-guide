@@ -6,7 +6,7 @@ from requests import Request
 from rest_framework import filters, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.filters import OrderingFilter
-from rest_framework.generics import RetrieveAPIView, GenericAPIView
+from rest_framework.generics import RetrieveAPIView, GenericAPIView, get_object_or_404
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -14,7 +14,7 @@ from tour.agency.models import TourPackage
 from tour.agency.serializers import TourPackageSerializer, ImageUploadSerializer
 from tour.agency.custom_pagination import CustomPagination, CustomCursorPagination
 
-from tour.agency.models import City, User
+from tour.agency.models import City
 
 from tour.agency.serializers import ConfirmBookingSerializer, CitySerializer, CompanySerializer, FeatureSerializer, \
     DestinationSerializer
@@ -198,6 +198,14 @@ class GetCityMatchAPIView(GenericAPIView):
             city_list = [city.name for city in City.objects.filter(name__icontains=city)]
             return Response({"city_list": city_list})
         return Response([])
+
+
+class GetCityFeaturesAPIView(GenericAPIView):
+
+    def get(self, request,pk):
+        city = get_object_or_404(City,id=pk)
+        features = [{'name':feature.name,'icon':feature.icon} for feature in city.features]
+        return Response({"city_list": features})
 
 
 class GetPopularCityAPIView(GenericAPIView):

@@ -3,7 +3,7 @@ from tour.agency.models import TourPackage
 from tour.agency.models import City
 from tour.agency.models import Company
 from tour.agency.models import Destination
-from tour.agency.models import Activity, Feature
+from tour.agency.models import Activity, Feature,Hotel
 
 from tour.user.serializers import ProfileSerializer
 
@@ -38,6 +38,12 @@ class CompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         exclude = ['id', 'total_rating']
+
+
+class HotelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Hotel
+        exclude = ['name','website']
 
 
 class TourPackageSerializer(serializers.ModelSerializer):

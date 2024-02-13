@@ -4,6 +4,8 @@ from django.utils import timezone
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 
+from tour.agency.models import TourPackage
+
 
 class UserManager(BaseUserManager):
     def create_user(self, phone_number, first_name, password=None, is_staff=False,
@@ -103,13 +105,20 @@ class Sms(models.Model):
 
 
 class Profile(models.Model):
-    user = models.OneToOneField(User,on_delete=models.CASCADE,related_name='profile')
+    user = models.OneToOneField("User",on_delete=models.CASCADE,related_name='profile')
+    packages = models.ManyToManyField(TourPackage)
+
+    first_name = models.CharField(max_length=200, blank=True, null=True, )
+    last_name = models.CharField(max_length=200, blank=True, null=True, )
+    phone_number = models.CharField(max_length=20, null=True, blank=True)
+    email = models.CharField(max_length=50, null=True, blank=True)
+
     profile_picture = models.CharField(null=True,blank=True)
     date_of_birth = models.DateField(null=True,blank=True)
     location = models.CharField(max_length=200,blank=True,null=True)
 
     def __str__(self):
-        return self.user.username
+        return self.user.phone_number
 
     class Meta:
         verbose_name = 'profile'

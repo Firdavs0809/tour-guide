@@ -3,14 +3,17 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework.exceptions import ValidationError
 from rest_framework.parsers import FileUploadParser
 from rest_framework.response import Response
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, get_object_or_404
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from oauthlib.oauth2 import Server
 
 from tour.oauth2.models import Application
+
+from tour.user.models import User
 from .serializers import (SignInSerializer, RefreshTokenSerializer, LogoutSerializer,
-                          RegistrationSerializer, ActivationSerializer)
+                          RegistrationSerializer, ActivationSerializer, ForgetPasswordSerializer,
+                          ResetPasswordSerializer, ConfirmPhoneNumberSerializer)
 from tour.oauth2.oauth2_validators import OAuth2V1Validator, OAuth2FrontValidator
 from tour.oauth2.oauth2_backends import JSONOAuthLibCore
 
@@ -114,3 +117,37 @@ class LogoutView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         return self.get_response()
+
+
+class ForgetPasswordView(GenericAPIView):
+    permission_classes = (AllowAny,)
+    serializer_class = ForgetPasswordSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        code = serializer.save()
+        return Response({"code": int(code.verified_code)}, status=status.HTTP_200_OK)
+
+
+class ConfirmPhoneNumberAPIView(GenericAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = ConfirmPhoneNumberSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response({'detail': 'Ok'}, status=status.HTTP_200_OK)
+
+
+# Reset Password
+class ResetPasswordView(GenericAPIView):
+    permission_classes = (AllowAny,)
+    serializer_class = ResetPasswordSerializer
+
+    def post(self, request, *args, **kwargs):
+        user = get_object_or_404(queryset=User, phone_number=request.data.get('phone_number'))
+        serializer = self.serializer_class(instance=user, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"password": 'Password reset successful!', 'detail': 'success'}, status=status.HTTP_200_OK)
