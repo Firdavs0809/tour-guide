@@ -1,13 +1,12 @@
-import time
 from datetime import timedelta, datetime
 
 from django.db.models import Q
-from requests import Request
 from rest_framework import filters, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.filters import OrderingFilter
 from rest_framework.generics import RetrieveAPIView, GenericAPIView, get_object_or_404
 from rest_framework.generics import ListAPIView
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from tour.agency.models import TourPackage
@@ -24,6 +23,7 @@ from .telegram_bot_setup import send_message
 class TourPackageListAPIView(ListAPIView):
     queryset = TourPackage.objects.all()
     serializer_class = TourPackageSerializer
+    permission_classes = (AllowAny,)
 
     # pagination_class = CustomPagination
     # filter_backends = [filters.SearchFilter]
@@ -38,6 +38,7 @@ class TourPackageListAPIView(ListAPIView):
 class TourPackageDetailAPIView(RetrieveAPIView):
     queryset = TourPackage.objects.all()
     serializer_class = TourPackageSerializer
+    permission_classes = (AllowAny,)
 
     def get_serializer_context(self):
         data = super().get_serializer_context()
@@ -46,9 +47,10 @@ class TourPackageDetailAPIView(RetrieveAPIView):
 
 class GetRelatedToursAPIView(GenericAPIView):
     serializer_class = TourPackageSerializer
+    permission_classes = (AllowAny,)
 
-    def get(self, request):
-        obj = TourPackage.objects.get(id=request.query_params.get('id'))
+    def get(self, request,pk):
+        obj = get_object_or_404(TourPackage,id=pk)
         serializer_related_city = self.serializer_class(TourPackage.objects.filter(
             Q(city_to=obj.city_to, is_expired=False) & ~Q(id=obj.id)), many=True).data
         serializer_related_period = self.serializer_class(TourPackage.objects.filter(
@@ -62,6 +64,7 @@ class GetRelatedToursAPIView(GenericAPIView):
 # Get featured tours
 class GetFeaturedToursAPIView(GenericAPIView):
     serializer_class = TourPackageSerializer
+    permission_classes = (AllowAny,)
 
     def get(self, request):
         queryset = TourPackage.objects.filter(is_featured=True)
@@ -74,6 +77,7 @@ class TourPackageSearchAPIView(GenericAPIView):
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ['starting_date']
     ordering = ['starting_date']
+    permission_classes = (AllowAny,)
 
     def get(self, request):
 
@@ -146,6 +150,7 @@ class TourPackageSearchAPIView(GenericAPIView):
 
 class ImageUploadView(APIView):
     serializer_class = ImageUploadSerializer
+    permission_classes = (AllowAny,)
 
     def post(self, request, pk):
         file = request.data.get('file')
@@ -164,6 +169,7 @@ class ImageUploadView(APIView):
 # Confirm Booking API View
 class ConfirmBookingAPIView(GenericAPIView):
     serializer_class = ConfirmBookingSerializer
+    permission_classes = (AllowAny,)
 
     def post(self, request, pk):
         try:
@@ -189,11 +195,10 @@ class ConfirmBookingAPIView(GenericAPIView):
 
 # get city view
 class GetCityMatchAPIView(GenericAPIView):
+    permission_classes = (AllowAny,)
 
     def get(self, request):
         city = request.query_params.get('city', None)
-        print(request.query_params)
-        print(city)
         if city:
             city_list = [city.name for city in City.objects.filter(name__icontains=city)]
             return Response({"city_list": city_list})
@@ -201,27 +206,31 @@ class GetCityMatchAPIView(GenericAPIView):
 
 
 class GetCityFeaturesAPIView(GenericAPIView):
+    serializer_class = FeatureSerializer
+    permission_classes = (AllowAny,)
 
-    def get(self, request,pk):
-        city = get_object_or_404(City,id=pk)
-        features = [{'name':feature.name,'icon':feature.icon} for feature in city.features]
-        return Response({"city_list": features})
+    def get(self, request, cityId):
+        city = get_object_or_404(City, id=cityId)
+        serializer = self.serializer_class(city.features, many=True)
+        return Response({'features': serializer.data})
 
 
 class GetPopularCityAPIView(GenericAPIView):
+    permission_classes = (AllowAny,)
 
     def get(self, request):
-        city_list = [city.name for city in City.objects.filter(is_popular=True)]
-        return Response({'city_list':city_list})
+        city_list = CitySerializer(City.objects.filter(is_popular=True), many=True)
+        return Response({'city_list': city_list})
 
 
 # get filters view
 class GetFiltersAPIView(GenericAPIView):
+    permission_classes = (AllowAny,)
 
-    def get(self, request):
-        city = request.query_params.get('city')
-        if city:
-            city = City.objects.get(name=city)
+    def get(self, request, pk):
+        city = City.objects.filter(id=pk)
+        if city.exists:
+            city = city.first()
             features = [feature.name for feature in city.features.all()]
 
             activities = []

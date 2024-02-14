@@ -11,7 +11,7 @@ from tour.user.serializers import ProfileSerializer
 class FeatureSerializer(serializers.ModelSerializer):
     class Meta:
         model = Feature
-        fields = ['name']
+        fields = ['name','icon']
 
 
 class DestinationSerializer(serializers.ModelSerializer):
@@ -31,7 +31,7 @@ class CitySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = City
-        fields = ['name', 'is_popular', 'features']
+        fields = ['id','name','features']
 
 
 class CompanySerializer(serializers.ModelSerializer):

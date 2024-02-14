@@ -28,7 +28,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # Third  party
     'corsheaders',
+    # Local apps
     'tour.user',
     'tour.agency',
     'tour.oauth2',
@@ -131,15 +134,18 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ),
 
-    # 'DEFAULT_THROTTLE_CLASSES': (
-    #     'rest_framework.throttling.AnonRateThrottle',
-    #     'rest_framework.throttling.UserRateThrottle'
-    # ),
-    # 'DEFAULT_THROTTLE_RATES': {
-    #     'anon': '500/minute',
-    #     'user': '1000/minute',
-    #     'loginAttempts': '3/hr',
-    #
-    # }
+    'DEFAULT_THROTTLE_CLASSES': (
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle'
+    ),
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '500/minute',
+        'user': '1000/minute',
+        'RegisterAttempts': '1/hr',
+
+    }
 
 }
+
+DRF_RECAPTCHA_SECRET_KEY = os.getenv('DRF_RECAPTCHA_SECRET_KEY')
+DRF_RECAPTCHA_VERIFY_ENDPOINT = os.getenv("DRF_RECAPTCHA_VERIFY_ENDPOINT")

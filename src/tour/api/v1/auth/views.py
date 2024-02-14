@@ -1,6 +1,6 @@
 import json
 from django.utils.translation import gettext_lazy as _
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, Throttled
 from rest_framework.parsers import FileUploadParser
 from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView, get_object_or_404
@@ -17,10 +17,23 @@ from .serializers import (SignInSerializer, RefreshTokenSerializer, LogoutSerial
 from tour.oauth2.oauth2_validators import OAuth2V1Validator, OAuth2FrontValidator
 from tour.oauth2.oauth2_backends import JSONOAuthLibCore
 
+from .throttle import UserRegisterRateThrottle
+
+
+# code for recaptcha goes here
+
 
 class RegistrationView(GenericAPIView):
     permission_classes = (AllowAny,)
     serializer_class = RegistrationSerializer
+
+    # recaptcha logic
+    throttle_classes = (UserRegisterRateThrottle,)
+
+    def throttled(self, request, wait):
+        raise Throttled(detail={
+            "message": "recaptcha_required",
+        })
 
     def post(self, request, *args, **kwargs):
         # Create a serializer with request.data
