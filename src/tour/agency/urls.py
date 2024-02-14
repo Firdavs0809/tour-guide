@@ -19,6 +19,6 @@ urlpatterns = [
     path('city/', GetCityMatchAPIView.as_view(), name='get-city-match'),
     path('city/popular/', GetPopularCityAPIView.as_view(), name='get-city-popular'),
     path('city/<int:pk>/filters/', GetFiltersAPIView.as_view(), name='get-filters'),
-    path('city/<int:pk>/features/', GetCityFeaturesAPIView.as_view(), name='get-features'),
+    path('city/<int:cityId>/features/', GetCityFeaturesAPIView.as_view(), name='get-features'),
 
 ]

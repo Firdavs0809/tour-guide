@@ -220,7 +220,7 @@ class GetPopularCityAPIView(GenericAPIView):
 
     def get(self, request):
         city_list = CitySerializer(City.objects.filter(is_popular=True), many=True)
-        return Response({'city_list': city_list})
+        return Response({'city_list': city_list.data})
 
 
 # get filters view

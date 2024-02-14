@@ -9,8 +9,8 @@ urlpatterns = [
     path('refresh-token/', RefreshTokenView.as_view(), name='auth-refresh'),
     path('logout/', LogoutView.as_view(), name='auth-logout'),
 
-    path('forget-password/', ForgetPasswordView.as_view(), name='auth-forget-pass'),
-    path('confirm-phone/', ConfirmPhoneNumberAPIView.as_view(), name='auth-confirm-phone'),
-    path('reset-password/', ResetPasswordView.as_view(), name='auth-reset-pass'),
+    path('forget-password/', ForgetPasswordView.as_view(), name='forget-pass'),
+    path('confirm-phone/', ConfirmPhoneNumberAPIView.as_view(), name='confirm-phone'),
+    path('reset-password/', ResetPasswordView.as_view(), name='reset-pass'),
 
 ]
