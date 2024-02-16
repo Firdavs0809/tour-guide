@@ -11,7 +11,6 @@ class OAuth2Authentication(BaseAuthentication):
         Returns two-tuple of (user, token) if authentication succeeds,
         or None otherwise.
         """
-
         oauthlib_core = get_oauthlib_core()
         valid, r = oauthlib_core.verify_request(request, scopes=["*"])
         if valid:

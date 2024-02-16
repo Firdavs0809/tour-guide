@@ -321,6 +321,7 @@ class OAuth2Validator(RequestValidator):
                         introspection_url,
                         introspection_token
                     )
+
             if access_token and access_token.is_valid(scopes):
                 request.client = access_token.application
                 request.user = access_token.user

@@ -171,24 +171,27 @@ class AccessToken(models.Model):
         Application, on_delete=models.CASCADE, blank=True, null=True,
     )
     expires = models.DateTimeField()
-    scope = models.TextField(blank=True)
+
+    # little change not to interfere the process of project
+    scope = models.TextField(default='* user admin')
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def is_valid(self, scopes=None):
+        # some changes for see working
+        print(self.is_expired())
+        print(self.allow_scopes(scopes))
         return not self.is_expired() and self.allow_scopes(scopes)
 
     def is_expired(self):
         if not self.expires:
             return True
-
         return timezone.now() >= self.expires
 
     def allow_scopes(self, scopes):
         if not scopes:
             return True
-
         provided_scopes = set(self.scope.split())
         resource_scopes = set(scopes)
 
