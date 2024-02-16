@@ -10,7 +10,7 @@ urlpatterns = [
 
     path('packages/search/', TourPackageSearchAPIView.as_view(), name='package-search'),
 
-    path('packages/<int:pk>/image-upload/', ImageUploadView.as_view(), name='package-image-upload'),
+    path('image-upload/', ImageUploadView.as_view(), name='image-upload'),
     path('packages/<int:pk>/confirm-booking/', ConfirmBookingAPIView.as_view(), name='confirm-booking'),
 
     path('packages/<int:pk>/related-tours/', GetRelatedToursAPIView.as_view(), name='get-related-tours'),

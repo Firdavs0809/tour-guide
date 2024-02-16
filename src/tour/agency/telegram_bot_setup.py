@@ -1,6 +1,6 @@
-import requests
 import os
 from dotenv import load_dotenv
+from .models import Company
 
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
@@ -9,19 +9,12 @@ load_dotenv()
 TOKEN = os.getenv('TG_TOKEN')
 
 
-def send_message(message, chat_id):
-    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage?chat_id={chat_id}&text={message}"
-    requests.get(url)
-
-
-company_info = []
-
-
 async def start_(update: Update, context: ContextTypes.DEFAULT_TYPE):
     tg_username = update.effective_user.username
     chat_id = update.message.chat_id
-    company_info.append({'tg_username': tg_username, 'chat_id': chat_id})
-    print(update.effective_user)
+    company = Company.objects.filter(tg_username=tg_username).first()
+    company.chat_id = chat_id
+    company.save()
     await update.message.reply_text(f"Welcome "
                                     f"{update.effective_user.first_name}! It's a Tour Guide bot. Your clients get in "
                                     f"touch with"

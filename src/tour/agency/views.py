@@ -15,9 +15,9 @@ from tour.agency.custom_pagination import CustomPagination, CustomCursorPaginati
 
 from tour.agency.models import City
 
-from tour.agency.serializers import ConfirmBookingSerializer, CitySerializer, CompanySerializer, FeatureSerializer, \
-    DestinationSerializer
-from .telegram_bot_setup import send_message
+from .serializers import ConfirmBookingSerializer, CitySerializer, CompanySerializer, FeatureSerializer, \
+    DestinationSerializer,PopularCitySerializer
+from .utils import send_message
 
 
 class TourPackageListAPIView(ListAPIView):
@@ -49,8 +49,8 @@ class GetRelatedToursAPIView(GenericAPIView):
     serializer_class = TourPackageSerializer
     permission_classes = (AllowAny,)
 
-    def get(self, request,pk):
-        obj = get_object_or_404(TourPackage,id=pk)
+    def get(self, request, pk):
+        obj = get_object_or_404(TourPackage, id=pk)
         serializer_related_city = self.serializer_class(TourPackage.objects.filter(
             Q(city_to=obj.city_to, is_expired=False) & ~Q(id=obj.id)), many=True).data
         serializer_related_period = self.serializer_class(TourPackage.objects.filter(
@@ -148,22 +148,15 @@ class TourPackageSearchAPIView(GenericAPIView):
         return Response([])
 
 
-class ImageUploadView(APIView):
+class ImageUploadView(GenericAPIView):
     serializer_class = ImageUploadSerializer
     permission_classes = (AllowAny,)
 
-    def post(self, request, pk):
-        file = request.data.get('file')
-        try:
-            package = TourPackage.objects.get(id=pk)
-            package.images.append(file)
-        except TourPackage.DoesNotExist:
-            raise ValidationError({'success': False, "message": 'Tour Package with this id not found'},
-                                  code=status.HTTP_404_NOT_FOUND)
-        except AttributeError:
-            package.images = [file, ]
-        package.save()
-        return Response({"success": True, 'message': 'Image was uploaded successfully!'})
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"detail": "ok", 'message': 'Image was uploaded successfully!'})
 
 
 # Confirm Booking API View
@@ -217,9 +210,10 @@ class GetCityFeaturesAPIView(GenericAPIView):
 
 class GetPopularCityAPIView(GenericAPIView):
     permission_classes = (AllowAny,)
+    serializer_class = PopularCitySerializer
 
     def get(self, request):
-        city_list = CitySerializer(City.objects.filter(is_popular=True), many=True)
+        city_list = PopularCitySerializer(City.objects.filter(is_popular=True), many=True)
         return Response({'city_list': city_list.data})
 
 

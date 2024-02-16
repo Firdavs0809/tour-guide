@@ -17,8 +17,6 @@ from .serializers import (SignInSerializer, RefreshTokenSerializer, LogoutSerial
 from tour.oauth2.oauth2_validators import OAuth2V1Validator, OAuth2FrontValidator
 from tour.oauth2.oauth2_backends import JSONOAuthLibCore
 
-from .throttle import UserRegisterRateThrottle
-
 
 # code for recaptcha goes here
 
@@ -26,14 +24,6 @@ from .throttle import UserRegisterRateThrottle
 class RegistrationView(GenericAPIView):
     permission_classes = (AllowAny,)
     serializer_class = RegistrationSerializer
-
-    # recaptcha logic
-    throttle_classes = (UserRegisterRateThrottle,)
-
-    def throttled(self, request, wait):
-        raise Throttled(detail={
-            "message": "recaptcha_required",
-        })
 
     def post(self, request, *args, **kwargs):
         # Create a serializer with request.data

@@ -4,6 +4,7 @@ from django.core.validators import FileExtensionValidator
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 
+
 # from ..user.models import User
 
 
@@ -126,6 +127,9 @@ class Feature(models.Model):
     def __str__(self):
         return self.name
 
+
+class ImageUploadModel(models.Model):
+    file = models.ImageField(null=False, blank=False,upload_to='images/')
 
 # Review Model -> Users can give review about the company
 # class Reviews(models.Model):

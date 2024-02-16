@@ -1,17 +1,16 @@
 from rest_framework import serializers
-from tour.agency.models import TourPackage
-from tour.agency.models import City
-from tour.agency.models import Company
-from tour.agency.models import Destination
-from tour.agency.models import Activity, Feature,Hotel
+from rest_framework.exceptions import ValidationError
 
-from tour.user.serializers import ProfileSerializer
+from .models import TourPackage, City, Company, Destination, Activity, Feature, Hotel, ImageUploadModel
+
+# ~12MB
+MAX_FILE_SIZE = 12 ** 20
 
 
 class FeatureSerializer(serializers.ModelSerializer):
     class Meta:
         model = Feature
-        fields = ['name','icon']
+        fields = ['name', 'icon']
 
 
 class DestinationSerializer(serializers.ModelSerializer):
@@ -31,7 +30,13 @@ class CitySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = City
-        fields = ['id','name','features']
+        fields = ['id', 'name', 'features']
+
+
+class PopularCitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = City
+        fields = ['id', 'name']
 
 
 class CompanySerializer(serializers.ModelSerializer):
@@ -43,7 +48,7 @@ class CompanySerializer(serializers.ModelSerializer):
 class HotelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Hotel
-        exclude = ['name','website']
+        exclude = ['name', 'website']
 
 
 class TourPackageSerializer(serializers.ModelSerializer):
@@ -61,8 +66,17 @@ class TourPackageSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class ImageUploadSerializer(serializers.Serializer):
-    file = serializers.CharField(max_length=500, required=True, write_only=True)
+class ImageUploadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ImageUploadModel
+        fields = ['file']
+
+    def validate_file(self, image):
+        print(image.name)
+        print(image.size)
+        if image.size > MAX_FILE_SIZE:
+            raise ValidationError({"detail": 'Image size should be under 12MB.'})
+        return image
 
 
 class ConfirmBookingSerializer(serializers.Serializer):

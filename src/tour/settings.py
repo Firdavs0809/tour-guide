@@ -1,5 +1,7 @@
 import os
 from pathlib import Path
+
+from django.conf import settings
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -31,11 +33,14 @@ INSTALLED_APPS = [
 
     # Third  party
     'corsheaders',
+    'storages',
+
     # Local apps
     'tour.user',
     'tour.agency',
     'tour.oauth2',
     'tour.api'
+
 ]
 
 MIDDLEWARE = [
@@ -119,6 +124,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
+MEDIA_URL = '/media/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -141,11 +147,25 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'anon': '500/minute',
         'user': '1000/minute',
-        'RegisterAttempts': '1/hr',
 
     }
 
 }
 
-DRF_RECAPTCHA_SECRET_KEY = os.getenv('DRF_RECAPTCHA_SECRET_KEY')
-DRF_RECAPTCHA_VERIFY_ENDPOINT = os.getenv("DRF_RECAPTCHA_VERIFY_ENDPOINT")
+
+# setup for s3 and staticfiles storages
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            'access_key': os.getenv('AWS_S3_ACCESS_KEY_ID'),
+            'secret_key': os.getenv('AWS_SECRET_ACCESS_KEY'),
+            'bucket_name': os.getenv('AWS_STORAGE_BUCKET_NAME'),
+            'querystring_auth': True,
+            'file_overwrite': False,
+        }
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}

@@ -12,5 +12,4 @@ urlpatterns = [
     path('forget-password/', ForgetPasswordView.as_view(), name='forget-pass'),
     path('confirm-phone/', ConfirmPhoneNumberAPIView.as_view(), name='confirm-phone'),
     path('reset-password/', ResetPasswordView.as_view(), name='reset-pass'),
-
 ]
