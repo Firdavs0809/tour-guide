@@ -16,16 +16,16 @@ class UserTestCase(APITestCase):
     def test_activation(self, ):
         data = {
             'phone_number': '+998878493984',
-            'code': '787678'
+            'code': '99999'
         }
         response = self.client.post(reverse('api:auth-register-activation'), data=data)
 
-        # self.assertEquals(response.status_code, 200)
+        self.assertEquals(response.status_code, 200)
 
     def test_incorrect_activation(self, ):
         data = {
             'phone_number': '+998878493984',
-            'code': '787678'
+            'code': '34565'
         }
         response = self.client.post(reverse('api:auth-register-activation'), data=data)
 

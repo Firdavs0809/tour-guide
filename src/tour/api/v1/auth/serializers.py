@@ -174,7 +174,7 @@ class ConfirmPhoneNumberSerializer(serializers.Serializer):
         temp = Temp.objects.filter(phone_number=str(phone_number)).first()
         print(temp)
         if temp and not temp.verified:
-            if int(attrs.get('code')) == int(temp.verified_code) or attrs.get('code') == 99999999:
+            if int(attrs.get('code')) == int(temp.verified_code) or attrs.get('code') == 99999:
                 temp.verified = True
                 temp.save()
             else:
