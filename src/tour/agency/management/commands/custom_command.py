@@ -1,3 +1,5 @@
+import threading
+
 from django.core.management.base import BaseCommand
 import os
 from dotenv import load_dotenv
@@ -16,14 +18,27 @@ class Command(BaseCommand):
         setup()
 
 
+class CompanyChatIdThreading(threading.Thread):
+
+    def __init__(self, chat_id=None, username=None):
+        super().__init__()
+        self.chat_id = chat_id
+        self.username = username
+
+    def run(self):
+        company = Company.objects.filter(tg_username=self.username).first()
+        if company:
+            company.chat_id = self.chat_id
+            company.save()
+
+
 async def start_(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         tg_username = update.effective_user.username
         print(tg_username)
         chat_id = update.message.chat_id
-        company = Company.objects.filter(tg_username=tg_username).first()
-        company.chat_id = chat_id
-        company.save()
+        obj = CompanyChatIdThreading(chat_id=chat_id, username=f"@{tg_username}")
+        obj.start()
     except Exception as e:
         print(e.args)
     await update.message.reply_text(f"Welcome "
