@@ -18,7 +18,7 @@ class UserManager(BaseUserManager):
         return user
 
     def create_superuser(self, phone_number, password=None, **kwargs):
-        return self.create_user(phone_number,'', password, is_staff=True, is_superuser=True, **kwargs)
+        return self.create_user(phone_number, '', password, is_staff=True, is_superuser=True, **kwargs)
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -105,17 +105,17 @@ class Sms(models.Model):
 
 
 class Profile(models.Model):
-    user = models.OneToOneField("User",on_delete=models.CASCADE,related_name='profile')
-    packages = models.ManyToManyField(TourPackage)
+    user = models.OneToOneField("User", on_delete=models.CASCADE, related_name='profile')
+    packages = models.ManyToManyField(TourPackage, blank=True, null=True)
 
     first_name = models.CharField(max_length=200, blank=True, null=True, )
     last_name = models.CharField(max_length=200, blank=True, null=True, )
     phone_number = models.CharField(max_length=20, null=True, blank=True)
     email = models.CharField(max_length=50, null=True, blank=True)
 
-    profile_picture = models.CharField(null=True,blank=True)
-    date_of_birth = models.DateField(null=True,blank=True)
-    location = models.CharField(max_length=200,blank=True,null=True)
+    profile_picture = models.CharField(null=True, blank=True)
+    date_of_birth = models.DateField(null=True, blank=True)
+    location = models.CharField(max_length=200, blank=True, null=True)
 
     def __str__(self):
         return self.user.phone_number

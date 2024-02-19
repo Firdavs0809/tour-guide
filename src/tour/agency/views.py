@@ -1,28 +1,32 @@
 from datetime import timedelta, datetime
-
 from django.db.models import Q
-from rest_framework import filters, status
+from django.utils import timezone
+from rest_framework import filters
 from rest_framework.exceptions import ValidationError
-from rest_framework.filters import OrderingFilter
 from rest_framework.generics import RetrieveAPIView, GenericAPIView, get_object_or_404
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
-from tour.agency.models import TourPackage
-from tour.agency.serializers import TourPackageSerializer, ImageUploadSerializer
-from tour.agency.custom_pagination import CustomPagination, CustomCursorPagination
-
-from tour.agency.models import City
-
-from .serializers import ConfirmBookingSerializer, CitySerializer, CompanySerializer, FeatureSerializer, \
-    DestinationSerializer,PopularCitySerializer
+from .models import TourPackage
+from .serializers import TourPackageSerializer, ImageUploadSerializer, TourPackageSerializerList
+from .models import City
+from .serializers import ConfirmBookingSerializer, CompanySerializer, FeatureSerializer, PopularCitySerializer
 from .utils import send_message
+from rest_framework.filters import OrderingFilter
+from .custom_pagination import CustomPagination, CustomCursorPagination
+
+
+class ExcludeExpiredPackages(GenericAPIView):
+
+    def get(self, request):
+        packages = TourPackage.objects.filter(starting_date__gte=timezone.now() + timedelta(hours=12))
+        packages.set(is_expired=True)
+        return Response({'detail': "ok"})
 
 
 class TourPackageListAPIView(ListAPIView):
     queryset = TourPackage.objects.all()
-    serializer_class = TourPackageSerializer
+    serializer_class = TourPackageSerializerList
     permission_classes = (AllowAny,)
 
     # pagination_class = CustomPagination
@@ -46,7 +50,7 @@ class TourPackageDetailAPIView(RetrieveAPIView):
 
 
 class GetRelatedToursAPIView(GenericAPIView):
-    serializer_class = TourPackageSerializer
+    serializer_class = TourPackageSerializerList
     permission_classes = (AllowAny,)
 
     def get(self, request, pk):
@@ -153,7 +157,6 @@ class ImageUploadView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
-        print(request.headers.get('Authorization'))
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -194,7 +197,9 @@ class GetCityMatchAPIView(GenericAPIView):
     def get(self, request):
         city = request.query_params.get('city', None)
         if city:
-            city_list = [city.name for city in City.objects.filter(name__icontains=city)]
+            city_list = [city.name for city in City.objects.filter(Q(name__istartswith=city))]
+            city_list += [city.name for city in City.objects.filter(Q(name__icontains=city)) if
+                          city.name not in city_list]
             return Response({"city_list": city_list})
         return Response([])
 

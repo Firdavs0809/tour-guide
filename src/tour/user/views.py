@@ -1,31 +1,19 @@
+from django.utils import timezone
 from rest_framework.generics import GenericAPIView
-from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 from .serializers import ProfileSerializer
-from ..agency.models import TourPackage
-from ..agency.serializers import TourPackageSerializer
-from ..oauth2.authentication import OAuth2Authentication
-from .models import User
+from ..agency.serializers import TourPackageSerializer,TourPackageSerializerList
 
 
-class ProfilePageView(GenericAPIView):
+class ProfilePageAPIView(GenericAPIView):
     serializer_class = ProfileSerializer
-    permission_classes = (AllowAny,)
 
-    # permission_classes = (IsAuthenticated,)
-    # authentication_classes = (OAuth2Authentication,)
-
-    # def get(self, request):
-    #     profile = request.user.profile
-    #     serializer = self.serializer_class(instance=profile)
-    #     return Response({'data': serializer.data})
     def get(self, request):
-        user = User.objects.get(id=4)
+        user = request.user
         profile = user.profile
         serializer = self.serializer_class(instance=profile)
-        user_packages = TourPackageSerializer(profile.packages,many=True).data
-        return Response({'data': {"user":serializer.data,'packages':user_packages}})
+        return Response({'user':serializer.data,})
 
     def put(self, request):
         profile = request.user.profile
@@ -35,4 +23,17 @@ class ProfilePageView(GenericAPIView):
 
     def delete(self, request):
         user = request.user
-        user.delete()
+        user.is_active = False
+        user.save()
+
+
+class GetProfileTickets(GenericAPIView):
+    serializer_class = TourPackageSerializerList
+
+    def get(self, request):
+        profile = request.user.profile
+        packages = profile.packages.filter(
+            starting_date__gte=timezone.now()
+        )
+        serializer = self.serializer_class(instance=packages, many=True)
+        return Response({"count":len(packages),"tickets": serializer.data})

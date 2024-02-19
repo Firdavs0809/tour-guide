@@ -38,10 +38,18 @@ class Company(models.Model):
         return self.name
 
 
+class Country(models.Model):
+    name = models.CharField(max_length=200, )
+
+    def __str__(self):
+        return self.name
+
+
 class City(models.Model):
     name = models.CharField(max_length=200, )
     is_popular = models.BooleanField(default=False)
     features = models.ManyToManyField("Feature", )
+    country = models.ForeignKey(Country,related_name='cities',blank=True,null=True,on_delete=models.SET_NULL)
 
     def __str__(self):
         return self.name

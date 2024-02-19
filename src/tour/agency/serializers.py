@@ -4,7 +4,7 @@ from rest_framework.exceptions import ValidationError
 from .models import TourPackage, City, Company, Destination, Activity, Feature, Hotel, ImageUploadModel
 
 # ~12MB
-MAX_FILE_SIZE = 12 ** 20
+MAX_FILE_SIZE = 12 * 2 ** 20
 
 
 class FeatureSerializer(serializers.ModelSerializer):
@@ -66,14 +66,19 @@ class TourPackageSerializer(serializers.ModelSerializer):
         return attrs
 
 
+class TourPackageSerializerList(serializers.ModelSerializer):
+    class Meta:
+        model = TourPackage
+        exclude = ['city_from', 'city_to', 'agency', 'destinations', 'activities', 'hotel', 'language', 'is_expired',
+                   'is_featured',]
+
+
 class ImageUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = ImageUploadModel
         fields = ['file']
 
     def validate_file(self, image):
-        print(image.name)
-        print(image.size)
         if image.size > MAX_FILE_SIZE:
             raise ValidationError({"detail": 'Image size should be under 12MB.'})
         return image

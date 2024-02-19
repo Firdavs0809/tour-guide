@@ -3,8 +3,8 @@ from .views import (SignInView, RefreshTokenView, LogoutView, RegistrationView, 
                     ForgetPasswordView, ResetPasswordView,ConfirmPhoneNumberAPIView)
 
 urlpatterns = [
-    path('sign-up/', RegistrationView.as_view(), name='reg-login'),
-    path('activation/', RegistrationActivationView.as_view(), name='reg-activation'),
+    path('sign-up/', RegistrationView.as_view(), name='auth-registration'),
+    path('activation/', RegistrationActivationView.as_view(), name='auth-register-activation'),
     path('sign-in/', SignInView.as_view(), name='auth-login'),
     path('refresh-token/', RefreshTokenView.as_view(), name='auth-refresh'),
     path('logout/', LogoutView.as_view(), name='auth-logout'),
