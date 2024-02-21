@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import TourPackageListAPIView, TourPackageDetailAPIView, TourPackageSearchAPIView, GetCityMatchAPIView, \
     ImageUploadView, ConfirmBookingAPIView, GetRelatedToursAPIView, GetFeaturedToursAPIView, GetFiltersAPIView, \
-    GetPopularCityAPIView,GetCityFeaturesAPIView,ExcludeExpiredPackages
+    GetPopularCityAPIView,GetCityFeaturesAPIView,ExcludeExpiredPackages,SetAgencyIdAPIView
 
 urlpatterns = [
     path('packages/top/', TourPackageListAPIView.as_view(), name='package-top'),
@@ -23,5 +23,8 @@ urlpatterns = [
 
 
     path('packages/expire/', ExcludeExpiredPackages.as_view(), name='auto-expire-packages'),
+
+
+    path('set-chat-id/', SetAgencyIdAPIView.as_view(), name='set-chat-id'),
 
 ]

@@ -7,7 +7,7 @@ from rest_framework.generics import RetrieveAPIView, GenericAPIView, get_object_
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from .models import TourPackage
+from .models import TourPackage, Company
 from .serializers import TourPackageSerializer, ImageUploadSerializer, TourPackageSerializerList
 from .models import City
 from .serializers import ConfirmBookingSerializer, CompanySerializer, FeatureSerializer, PopularCitySerializer
@@ -270,3 +270,15 @@ class GetFiltersAPIView(GenericAPIView):
             return Response(
                 {"activities": activities, 'destinations': destinations, 'features': features, 'durations': durations_})
         return Response([])
+
+
+class SetAgencyIdAPIView(GenericAPIView):
+
+    def post(self,request):
+        tg_username = request.data.get('tg_username')
+        chat_id = request.data.get('chat_id')
+        agency = get_object_or_404(Company,tg_username=tg_username)
+        agency.chat_id = chat_id
+        agency.is_bot_connected = True
+        agency.save()
+        return Response({'detail':'ok'})

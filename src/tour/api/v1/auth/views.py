@@ -45,7 +45,7 @@ class RegistrationActivationView(GenericAPIView):
             if root:
                 return Response({"detail": "success"}, status=status.HTTP_200_OK)
             else:
-                return Response({"detail": "invalid verification"},status=status.HTTP_400_BAD_REQUEST)
+                return Response({"detail": "invalid verification"}, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
             error = e

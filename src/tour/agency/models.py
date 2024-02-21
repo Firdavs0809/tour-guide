@@ -5,9 +5,6 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 
 
-# from ..user.models import User
-
-
 class Hotel(models.Model):
     name = models.CharField(max_length=200, null=True, blank=True)
     stars = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)], null=True, blank=True)
@@ -17,18 +14,49 @@ class Hotel(models.Model):
         return self.name
 
 
+class TempCompany(models.Model):
+    name = models.CharField(max_length=200, blank=False, null=False,)
+    phone_number_2 = models.CharField(max_length=30, null=True, blank=True, unique=True)
+    phone_number = models.CharField(max_length=30, null=True, blank=True)
+    licence_number = models.CharField(max_length=12, null=False, blank=False, unique=True)
+    address = models.CharField(max_length=95, null=False, blank=False)
+    tg_username = models.CharField(max_length=200, null=True, blank=True)
+    is_verified = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name
+
+
 class Company(models.Model):
-    name = models.CharField(max_length=200, blank=False, null=False)
+    # tour agency admins
+    admin = models.ForeignKey("user.User", on_delete=models.SET_NULL, related_name='admins', null=True, blank=True)
+
+    # tour agency info
+    name = models.CharField(max_length=200, blank=False, null=False,)
+    phone_number_2 = models.CharField(max_length=30, null=True, blank=True, unique=True)
+    licence_number = models.CharField(max_length=12, null=False, blank=False, unique=True)
+    address = models.CharField(max_length=95, null=False, blank=False)
+
     logo = models.CharField(null=True, blank=True)
-    phone_number = models.CharField(max_length=30, blank=True, null=True)
-    website = models.CharField(max_length=50, blank=False, null=False)
+    website = models.CharField(max_length=200, blank=False, null=False)
+
     average_rating = models.DecimalField(max_digits=3, decimal_places=1, editable=False, null=True, blank=True)
     total_rating = models.IntegerField(default=0, editable=False)
     number_of_rating = models.IntegerField(default=0, editable=False)
+
+    # tg info of agency to send notification
     tg_username = models.CharField(max_length=200, null=True, blank=True)
     chat_id = models.CharField(max_length=13, null=True, blank=True)
 
+    is_bot_connected = models.BooleanField(default=False, )
+    is_verified = models.BooleanField(default=False, )
+    is_waiting = models.BooleanField(default=True, )
+
     def calculate_rating(self, user_rating):
+        """
+            Calculates the rating and modifies
+             if latest changes not applied.
+        """
         self.total_rating += user_rating
         self.number_of_rating += 1
         self.average_rating = round(float(self.total_rating) / float(self.number_of_rating), ndigits=2, )
@@ -49,7 +77,7 @@ class City(models.Model):
     name = models.CharField(max_length=200, )
     is_popular = models.BooleanField(default=False)
     features = models.ManyToManyField("Feature", )
-    country = models.ForeignKey(Country,related_name='cities',blank=True,null=True,on_delete=models.SET_NULL)
+    country = models.ForeignKey(Country, related_name='cities', blank=True, null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return self.name
@@ -137,7 +165,7 @@ class Feature(models.Model):
 
 
 class ImageUploadModel(models.Model):
-    file = models.ImageField(null=False, blank=False,upload_to='images/')
+    file = models.ImageField(null=False, blank=False, upload_to='images/')
 
 # Review Model -> Users can give review about the company
 # class Reviews(models.Model):
