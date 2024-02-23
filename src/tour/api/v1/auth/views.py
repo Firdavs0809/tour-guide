@@ -8,14 +8,13 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from oauthlib.oauth2 import Server
 
-from tour.oauth2.models import Application
 
-from tour.user.models import User
+from user.models import User
 from .serializers import (SignInSerializer, RefreshTokenSerializer, LogoutSerializer,
                           RegistrationSerializer, ActivationSerializer, ForgetPasswordSerializer,
                           ResetPasswordSerializer, ConfirmPhoneNumberSerializer)
-from tour.oauth2.oauth2_validators import OAuth2V1Validator, OAuth2FrontValidator
-from tour.oauth2.oauth2_backends import JSONOAuthLibCore
+from oauth2.oauth2_validators import OAuth2V1Validator, OAuth2FrontValidator
+from oauth2.oauth2_backends import JSONOAuthLibCore
 
 
 # code for recaptcha goes here
@@ -63,7 +62,6 @@ class SignInView(GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         """API for sign in"""
-        print(request.data)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = self.request.data
