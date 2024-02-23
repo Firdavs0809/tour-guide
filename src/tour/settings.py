@@ -30,7 +30,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
 
-    "whitenoise.runserver_nostatic"
+    "whitenoise.runserver_nostatic",
     'django.contrib.staticfiles',
 
     # Third  party
