@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from .models import TourPackage, City, Company, Destination, Activity, Feature, Hotel, ImageUploadModel
+from .models import TourPackage, City, Company, Destination, Activity, Feature, Hotel, ImageUploadModel, Options, \
+    Category
 
 # ~12MB
 MAX_FILE_SIZE = 12 * 2 ** 20
@@ -70,7 +71,7 @@ class TourPackageSerializerList(serializers.ModelSerializer):
     class Meta:
         model = TourPackage
         exclude = ['city_from', 'city_to', 'agency', 'destinations', 'activities', 'hotel', 'language', 'is_expired',
-                   'is_featured',]
+                   'is_featured', ]
 
 
 class ImageUploadSerializer(serializers.ModelSerializer):
@@ -86,3 +87,16 @@ class ImageUploadSerializer(serializers.ModelSerializer):
 
 class ConfirmBookingSerializer(serializers.Serializer):
     tg_username = serializers.CharField(max_length=200, required=True, write_only=True)
+    comment = serializers.CharField(required=False)
+
+
+class OptionsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Options
+        fields = ['id', 'name']
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id', 'name']

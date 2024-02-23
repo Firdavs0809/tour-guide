@@ -4,10 +4,11 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
-from ....agency.models import TourPackage, Company
+from ....agency.models import TourPackage, Company,Options
 from ....user.models import User
 import requests
-from .serializers import AgencyRegisterSerializer, AgencyRegistrationActivationSerializer
+from .serializers import AgencyRegisterSerializer, AgencyRegistrationActivationSerializer, TourPackageCreateSerializer
+from .custom_permissions import IsAdminIsOwnerOrReadOnly, IsAdminIsAuthenticated
 
 
 class AgencyRegisterAPIView(GenericAPIView):
@@ -56,5 +57,15 @@ class AgencyRegistrationActivationAPIView(GenericAPIView):
         return Response({'detail': 'ok'})
 
 
-class CreateHotelAPIView():
-    pass
+class TourPackageCreateAPIView(CreateAPIView):
+    serializer_class = TourPackageCreateSerializer
+    permission_classes = (IsAdminIsAuthenticated,)
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+    def create(self, request,*args,**kwargs):
+        print(request.data)
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response(serializer.data,status=status.HTTP_201_CREATED)

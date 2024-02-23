@@ -2,6 +2,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.core.validators import FileExtensionValidator
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db.models import UniqueConstraint
 from django.utils import timezone
 
 
@@ -15,12 +16,13 @@ class Hotel(models.Model):
 
 
 class TempCompany(models.Model):
-    name = models.CharField(max_length=200, blank=False, null=False,)
+    name = models.CharField(max_length=200, blank=False, null=False, )
     phone_number_2 = models.CharField(max_length=30, null=True, blank=True, unique=True)
     phone_number = models.CharField(max_length=30, null=True, blank=True)
     licence_number = models.CharField(max_length=12, null=False, blank=False, unique=True)
     address = models.CharField(max_length=95, null=False, blank=False)
     tg_username = models.CharField(max_length=200, null=True, blank=True)
+    website = models.CharField(max_length=200,null=True,blank=True)
     is_verified = models.BooleanField(default=False)
 
     def __str__(self):
@@ -32,10 +34,10 @@ class Company(models.Model):
     admin = models.ForeignKey("user.User", on_delete=models.SET_NULL, related_name='admins', null=True, blank=True)
 
     # tour agency info
-    name = models.CharField(max_length=200, blank=False, null=False,)
+    name = models.CharField(max_length=200, blank=False, null=False, )
     phone_number_2 = models.CharField(max_length=30, null=True, blank=True, unique=True)
-    licence_number = models.CharField(max_length=12, null=False, blank=False, unique=True)
-    address = models.CharField(max_length=95, null=False, blank=False)
+    licence_number = models.CharField(max_length=12, null=False, blank=False, unique=True,default='l34-3d3-3')
+    address = models.CharField(max_length=95, null=False, blank=False,default='Uzbekistan')
 
     logo = models.CharField(null=True, blank=True)
     website = models.CharField(max_length=200, blank=False, null=False)
@@ -83,19 +85,38 @@ class City(models.Model):
         return self.name
 
 
+class Category(models.Model):
+    name = models.CharField(max_length=20, null=False, blank=False)
+
+    def __str__(self):
+        return self.name
+
+
+class Options(models.Model):
+    name = models.CharField(max_length=20, null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+
 # Agency Tour Packages model
 class TourPackage(models.Model):
     agency = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='packages')
     hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE, related_name='packages', null=True)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
 
     title = models.CharField(max_length=200, null=True, blank=True)
     image = models.CharField(null=True, blank=True)
     images = ArrayField(models.URLField(blank=True, null=True), size=10, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
-    language = models.ManyToManyField("Language", related_name='packages', )
+    language = models.ManyToManyField("Language", related_name='packages',null=True,blank=True )
 
     starting_date = models.DateField()
     ending_date = models.DateField()
+
+    airport_from = models.CharField(max_length=100, null=True, blank=True)
+    airport_to = models.CharField(max_length=100, null=True, blank=True)
+    options_included = models.ForeignKey(Options, on_delete=models.SET_NULL, null=True, blank=True)
 
     city_from = models.ForeignKey(City, on_delete=models.CASCADE, related_name='cities_from', null=True)
     city_to = models.ForeignKey(City, on_delete=models.CASCADE, related_name='cities_to', null=True)
@@ -166,6 +187,25 @@ class Feature(models.Model):
 
 class ImageUploadModel(models.Model):
     file = models.ImageField(null=False, blank=False, upload_to='images/')
+
+
+class Booking(models.Model):
+    profile = models.ForeignKey("user.Profile", on_delete=models.CASCADE,null=True)
+    package = models.ForeignKey(TourPackage, on_delete=models.CASCADE,null=True)
+    comment = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, editable=False,null=True)
+
+    def __str__(self):
+        return self.profile.user.phone_number + " booked " + "( " + self.package.title + " )"
+
+    class Meta:
+        verbose_name = "booking"
+        verbose_name_plural = "bookings"
+        ordering = ["-created_at"]
+        constraints = [UniqueConstraint(
+            name='Per User Per Package',
+            fields=['profile', 'package']
+        )]
 
 # Review Model -> Users can give review about the company
 # class Reviews(models.Model):

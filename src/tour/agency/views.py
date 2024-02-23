@@ -1,16 +1,18 @@
 from datetime import timedelta, datetime
 from django.db.models import Q
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from rest_framework import filters
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import RetrieveAPIView, GenericAPIView, get_object_or_404
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from .models import TourPackage, Company
+from .models import TourPackage, Company, Booking
 from .serializers import TourPackageSerializer, ImageUploadSerializer, TourPackageSerializerList
-from .models import City
-from .serializers import ConfirmBookingSerializer, CompanySerializer, FeatureSerializer, PopularCitySerializer
+from .models import City, Options, Category
+from .serializers import ConfirmBookingSerializer, CompanySerializer, FeatureSerializer, PopularCitySerializer, \
+    OptionsSerializer, CategorySerializer
 from .utils import send_message
 from rest_framework.filters import OrderingFilter
 from .custom_pagination import CustomPagination, CustomCursorPagination
@@ -166,7 +168,7 @@ class ImageUploadView(GenericAPIView):
 # Confirm Booking API View
 class ConfirmBookingAPIView(GenericAPIView):
     serializer_class = ConfirmBookingSerializer
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request, pk):
         try:
@@ -174,20 +176,30 @@ class ConfirmBookingAPIView(GenericAPIView):
         except TourPackage.DoesNotExist:
             raise ValidationError({"success": False, "detail": "Tour Package not Found"})
 
-        serializer = CompanySerializer(package.agency)
+        profile = request.user.profile
+        if package not in profile.packages.all():
+            profile.packages.add(package)
+        else:
+            raise ValidationError({"success": False, "detail": _("You have already booked that tour.")})
 
-        message = (f"You have a client!\n"
-                   f"Tour package: {package.title}\n"
-                   f"user: Firdavs Jalolov\n"
-                   f"username: @first_ac_firdavs\n"
-                   f"phone_number: +998907689098")
+        (obj, created) = Booking.objects.get_or_create(package=package, profile=profile)
+        if created:
 
-        try:
-            send_message(message, package.agency.chat_id)
-        except:
-            raise ValidationError({'detail': "Agency is not a member of the bot."})
+            serializer = CompanySerializer(package.agency)
 
-        return Response({'agency': serializer.data})
+            message = (f"You have a client!\n"
+                       f"Tour package: {package.title}\n"
+                       f"user: Firdavs Jalolov\n"
+                       f"username: @first_ac_firdavs\n"
+                       f"phone_number: +998907689098")
+
+            try:
+                send_message(message, package.agency.chat_id)
+            except:
+                raise ValidationError({'detail': "Agency is not a member of the bot."})
+
+            return Response({'agency': serializer.data})
+        raise ValidationError({'detail': _("You have already booked for that tour package.")})
 
 
 # get city view
@@ -274,11 +286,37 @@ class GetFiltersAPIView(GenericAPIView):
 
 class SetAgencyIdAPIView(GenericAPIView):
 
-    def post(self,request):
+    def post(self, request):
         tg_username = request.data.get('tg_username')
         chat_id = request.data.get('chat_id')
-        agency = get_object_or_404(Company,tg_username=tg_username)
+        agency = get_object_or_404(Company, tg_username=tg_username)
         agency.chat_id = chat_id
         agency.is_bot_connected = True
         agency.save()
-        return Response({'detail':'ok'})
+        return Response({'detail': 'ok'})
+
+
+class GetOptionsAPIView(GenericAPIView):
+    serializer_class = OptionsSerializer
+    permission_classes = (AllowAny,)
+    queryset = Options
+
+    def get_queryset(self):
+        return self.queryset.objects.all()
+
+    def get(self, request):
+        serializer = self.serializer_class(instance=self.get_queryset(), many=True)
+        return Response({'options': serializer.data})
+
+
+class GetCategoryAPIView(GenericAPIView):
+    serializer_class = CategorySerializer
+    permission_classes = (AllowAny,)
+    queryset = Category
+
+    def get_queryset(self):
+        return self.queryset.objects.all()
+
+    def get(self, request):
+        serializer = self.serializer_class(instance=self.get_queryset(), many=True)
+        return Response({'categories': serializer.data})

@@ -3,7 +3,7 @@ from django.db import transaction, IntegrityError
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from tour.agency.models import Company, TempCompany
+from tour.agency.models import Company, TempCompany,TourPackage
 
 from tour.user.models import User
 import requests
@@ -22,7 +22,7 @@ class AgencyRegisterSerializer(serializers.Serializer):
     licence_number = serializers.CharField(required=True, max_length=12, )
     address = serializers.CharField(required=True, max_length=95, )
     tg_username = serializers.CharField(required=True, max_length=32, min_length=5)
-    website = serializers.CharField(max_length=200, )
+    website = serializers.CharField(max_length=200, required=False)
 
     def validate_address(self, address):
         return address
@@ -42,11 +42,12 @@ class AgencyRegisterSerializer(serializers.Serializer):
             try:
                 tmp = TempCompany.objects.create(
                     name=self.validated_data.get('name', None),
-                    phone_number="+"+self.validated_data.get('phone_number', None).replace('+',''),
+                    phone_number="+" + self.validated_data.get('phone_number', None).replace('+', ''),
                     phone_number_2=self.validated_data.get('phone_number_2', None),
                     licence_number=self.validated_data.get('licence_number', None),
                     address=self.validated_data.get('address', None),
                     tg_username=self.validated_data.get('tg_username', None),
+                    website=self.validated_data.get('website', "No website"),
                 )
             except IntegrityError as error:
                 error_message = _(
@@ -56,13 +57,14 @@ class AgencyRegisterSerializer(serializers.Serializer):
 
     def getTempObject(self, ):
         try:
-            temp = TempCompany.objects.get(phone_number="+" + self.validated_data.get('phone_number').replace('+',''))
+            temp = TempCompany.objects.get(phone_number="+" + self.validated_data.get('phone_number').replace('+', ''))
             try:
                 temp.name = self.validated_data.get("name")
                 temp.phone_number_2 = self.validated_data.get("phone_number_2")
                 temp.licence_number = self.validated_data.get("licence_number")
                 temp.address = self.validated_data.get("address")
                 temp.tg_username = self.validated_data.get("tg_username")
+                temp.website = self.validated_data.get("website","No Website")
                 temp.is_verified = False
                 temp.save()
                 return temp
@@ -79,7 +81,7 @@ class AgencyRegistrationActivationSerializer(serializers.Serializer):
     code = serializers.CharField()
 
     def save(self, **kwargs):
-        tmp = TempCompany.objects.filter(phone_number="+" + self.validated_data.get('phone_number').replace('+',''),
+        tmp = TempCompany.objects.filter(phone_number="+" + self.validated_data.get('phone_number').replace('+', ''),
                                          is_verified=False).first()
         if not tmp:
             raise ValidationError(
@@ -90,6 +92,8 @@ class AgencyRegistrationActivationSerializer(serializers.Serializer):
                     admin=User.objects.get(phone_number=tmp.phone_number),
                     phone_number_2=tmp.phone_number_2,
                     licence_number=tmp.licence_number,
+                    tg_username=tmp.tg_username,
+                    website=tmp.website,
                     address=tmp.address,
                     name=tmp.name
                 )
@@ -108,3 +112,9 @@ class AgencyRegistrationActivationSerializer(serializers.Serializer):
             tmp.save()
             return agency
         return None
+
+
+class TourPackageCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TourPackage
+        fields = "__all__"

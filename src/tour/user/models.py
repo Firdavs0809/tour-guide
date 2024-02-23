@@ -106,7 +106,7 @@ class Sms(models.Model):
 
 class Profile(models.Model):
     user = models.OneToOneField("User", on_delete=models.CASCADE, related_name='profile')
-    packages = models.ManyToManyField(TourPackage,)
+    packages = models.ManyToManyField(TourPackage,null=True,blank=True)
 
     first_name = models.CharField(max_length=200, blank=True, null=True, )
     last_name = models.CharField(max_length=200, blank=True, null=True, )
