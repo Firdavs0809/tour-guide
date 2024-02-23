@@ -1,7 +1,6 @@
 import json
 from django.utils.translation import gettext_lazy as _
 from rest_framework.exceptions import ValidationError, Throttled
-from rest_framework.parsers import FileUploadParser
 from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView, get_object_or_404
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -9,12 +8,12 @@ from rest_framework import status
 from oauthlib.oauth2 import Server
 
 
-from user.models import User
+from tour.user.models import User
 from .serializers import (SignInSerializer, RefreshTokenSerializer, LogoutSerializer,
                           RegistrationSerializer, ActivationSerializer, ForgetPasswordSerializer,
                           ResetPasswordSerializer, ConfirmPhoneNumberSerializer)
-from oauth2.oauth2_validators import OAuth2V1Validator, OAuth2FrontValidator
-from oauth2.oauth2_backends import JSONOAuthLibCore
+from tour.oauth2.oauth2_validators import OAuth2V1Validator, OAuth2FrontValidator
+from tour.oauth2.oauth2_backends import JSONOAuthLibCore
 
 
 # code for recaptcha goes here
