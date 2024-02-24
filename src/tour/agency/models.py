@@ -31,7 +31,7 @@ class TempCompany(models.Model):
 
 class Company(models.Model):
     # tour agency admin
-    admin = models.ForeignKey("user.User", on_delete=models.CASCADE, related_name='agency', null=True)
+    admin = models.OneToOneField("user.User", on_delete=models.CASCADE, related_name='agency', null=True)
 
     # tour agency info
     name = models.CharField(max_length=200, blank=False, null=False, )
