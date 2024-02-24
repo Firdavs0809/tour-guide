@@ -22,7 +22,7 @@ class TempCompany(models.Model):
     licence_number = models.CharField(max_length=12, null=False, blank=False, unique=True)
     address = models.CharField(max_length=95, null=False, blank=False)
     tg_username = models.CharField(max_length=200, null=True, blank=True)
-    website = models.CharField(max_length=200,null=True,blank=True)
+    website = models.CharField(max_length=200, null=True, blank=True)
     is_verified = models.BooleanField(default=False)
 
     def __str__(self):
@@ -30,16 +30,16 @@ class TempCompany(models.Model):
 
 
 class Company(models.Model):
-    # tour agency admins
-    admin = models.ForeignKey("user.User", on_delete=models.SET_NULL, related_name='admins', null=True, blank=True)
+    # tour agency admin
+    admin = models.OneToOneField("user.User", on_delete=models.CASCADE, related_name='agency', null=True)
 
     # tour agency info
     name = models.CharField(max_length=200, blank=False, null=False, )
     phone_number_2 = models.CharField(max_length=30, null=True, blank=True, unique=True)
-    licence_number = models.CharField(max_length=12, null=False, blank=False, unique=True,default='l34-3d3-3')
-    address = models.CharField(max_length=95, null=False, blank=False,default='Uzbekistan')
+    licence_number = models.CharField(max_length=12, null=False, blank=False, unique=True, default='l34-3d3-3')
+    address = models.CharField(max_length=95, null=False, blank=False, default='Uzbekistan')
 
-    logo = models.CharField(null=True, blank=True)
+    logo = models.CharField(default="default-agency-image.png")
     website = models.CharField(max_length=200, blank=False, null=False)
 
     average_rating = models.DecimalField(max_digits=3, decimal_places=1, editable=False, null=True, blank=True)
@@ -102,26 +102,24 @@ class Options(models.Model):
 # Agency Tour Packages model
 class TourPackage(models.Model):
     agency = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='packages')
-    hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE, related_name='packages', null=True)
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
+    hotels = models.ManyToManyField(Hotel, blank=True)
+    category = models.ManyToManyField(Category, blank=True)
 
     title = models.CharField(max_length=200, null=True, blank=True)
     image = models.CharField(null=True, blank=True)
     images = ArrayField(models.URLField(blank=True, null=True), size=10, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
-    language = models.ManyToManyField("Language", related_name='packages',null=True,blank=True )
+    language = models.ManyToManyField("Language", related_name='packages', blank=True)
 
     starting_date = models.DateField()
     ending_date = models.DateField()
 
     airport_from = models.CharField(max_length=100, null=True, blank=True)
     airport_to = models.CharField(max_length=100, null=True, blank=True)
-    options_included = models.ForeignKey(Options, on_delete=models.SET_NULL, null=True, blank=True)
+    options = models.ManyToManyField(Options, blank=True, )
 
     city_from = models.ForeignKey(City, on_delete=models.CASCADE, related_name='cities_from', null=True)
     city_to = models.ForeignKey(City, on_delete=models.CASCADE, related_name='cities_to', null=True)
-
-    location = models.CharField(max_length=500, null=True, blank=True)
 
     number_people = models.IntegerField(default=1, validators=[MinValueValidator(1)])
     price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True,
@@ -130,8 +128,8 @@ class TourPackage(models.Model):
     is_expired = models.BooleanField(default=False, )
     is_featured = models.BooleanField(default=False, )
 
-    destinations = models.ManyToManyField("Destination")
-    activities = models.ManyToManyField('Activity')
+    destinations = models.ManyToManyField("Destination", blank=True)
+    activities = models.ManyToManyField('Activity', blank=True)
 
     def calc_expiration(self):
         if timezone.now >= self.starting_date:
@@ -190,10 +188,10 @@ class ImageUploadModel(models.Model):
 
 
 class Booking(models.Model):
-    profile = models.ForeignKey("user.Profile", on_delete=models.CASCADE,null=True)
-    package = models.ForeignKey(TourPackage, on_delete=models.CASCADE,null=True)
+    profile = models.ForeignKey("user.Profile", on_delete=models.CASCADE, null=True)
+    package = models.ForeignKey(TourPackage, on_delete=models.CASCADE, null=True)
     comment = models.TextField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True, editable=False,null=True)
+    created_at = models.DateTimeField(auto_now_add=True, editable=False, null=True)
 
     def __str__(self):
         return self.profile.user.phone_number + " booked " + "( " + self.package.title + " )"

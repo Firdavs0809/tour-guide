@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
 from ....agency.models import TourPackage, Company,Options
+from ....agency.serializers import CompanySerializer
 from ....user.models import User
 import requests
 from .serializers import AgencyRegisterSerializer, AgencyRegistrationActivationSerializer, TourPackageCreateSerializer
@@ -57,6 +58,20 @@ class AgencyRegistrationActivationAPIView(GenericAPIView):
         return Response({'detail': 'ok'})
 
 
+class GetAgencyAPIView(GenericAPIView):
+    permission_classes = (AllowAny,)
+    serializer_class = CompanySerializer
+
+    def get(self, request, pk):
+        agency = Company.objects.filter(id=pk).first()
+        if agency:
+            serializer = self.serializer_class(instance=agency)
+            data = serializer.data
+            data['phone_number'] = agency.admin.phone_number
+            return Response({"agency": data})
+        return Response({'success': False, 'message': "Tour not Found"}, status=status.HTTP_400_BAD_REQUEST)
+
+
 class TourPackageCreateAPIView(CreateAPIView):
     serializer_class = TourPackageCreateSerializer
     permission_classes = (IsAdminIsAuthenticated,)
@@ -65,7 +80,7 @@ class TourPackageCreateAPIView(CreateAPIView):
         serializer.save()
 
     def create(self, request,*args,**kwargs):
-        print(request.data)
-        serializer = self.serializer_class(data=request.data)
+        serializer = self.serializer_class(data=request.data,context={'admin':request.user})
         serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response(serializer.data,status=status.HTTP_201_CREATED)

@@ -27,11 +27,11 @@ class ActivitySerializer(serializers.ModelSerializer):
 
 
 class CitySerializer(serializers.ModelSerializer):
-    features = FeatureSerializer(many=True, read_only=True)
+    # features = FeatureSerializer(many=True, read_only=True)
 
     class Meta:
         model = City
-        fields = ['id', 'name', 'features']
+        fields = ['id', 'name']
 
 
 class PopularCitySerializer(serializers.ModelSerializer):
@@ -43,7 +43,7 @@ class PopularCitySerializer(serializers.ModelSerializer):
 class CompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
-        exclude = ['id', 'total_rating']
+        exclude = ['id', 'total_rating', 'admin', 'is_verified', 'is_bot_connected', 'is_waiting', 'chat_id']
 
 
 class HotelSerializer(serializers.ModelSerializer):
@@ -54,14 +54,13 @@ class HotelSerializer(serializers.ModelSerializer):
 
 class TourPackageSerializer(serializers.ModelSerializer):
     city_from = serializers.CharField()
-    city_to = CitySerializer(read_only=True, )
-    agency = serializers.CharField()
+    city_to = CitySerializer()
     destinations = DestinationSerializer(read_only=True, many=True)
     activities = ActivitySerializer(read_only=True, many=True)
 
     class Meta:
         model = TourPackage
-        fields = "__all__"
+        exclude = ['language', 'is_expired', 'is_featured','number_people']
 
     def validate(self, attrs):
         return attrs
@@ -70,8 +69,8 @@ class TourPackageSerializer(serializers.ModelSerializer):
 class TourPackageSerializerList(serializers.ModelSerializer):
     class Meta:
         model = TourPackage
-        exclude = ['city_from', 'city_to', 'agency', 'destinations', 'activities', 'hotel', 'language', 'is_expired',
-                   'is_featured', ]
+        exclude = ['city_from', 'city_to', 'destinations', 'activities', 'hotels', 'language', 'is_expired',
+                   'is_featured', 'options', 'category']
 
 
 class ImageUploadSerializer(serializers.ModelSerializer):

@@ -1,9 +1,10 @@
 from django.core.validators import RegexValidator
 from django.db import transaction, IntegrityError
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from tour.agency.models import Company, TempCompany,TourPackage
+from tour.agency.models import Company, TempCompany, TourPackage, Category, Options, Hotel
 
 from tour.user.models import User
 import requests
@@ -64,7 +65,7 @@ class AgencyRegisterSerializer(serializers.Serializer):
                 temp.licence_number = self.validated_data.get("licence_number")
                 temp.address = self.validated_data.get("address")
                 temp.tg_username = self.validated_data.get("tg_username")
-                temp.website = self.validated_data.get("website","No Website")
+                temp.website = self.validated_data.get("website", "No Website")
                 temp.is_verified = False
                 temp.save()
                 return temp
@@ -115,6 +116,123 @@ class AgencyRegistrationActivationSerializer(serializers.Serializer):
 
 
 class TourPackageCreateSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(required=True, max_length=48)
+    city_from = serializers.IntegerField(required=True)
+    city_to = serializers.IntegerField(required=True)
+    activities = serializers.ListField(required=False)
+    destinations = serializers.ListField(required=False)
+    category = serializers.ListField(required=True)
+    hotels = serializers.ListField(required=True)
+    images = serializers.ListField(required=True)
+    airport_from = serializers.CharField(required=True)
+    airport_to = serializers.CharField(required=True)
+    options = serializers.ListField(required=True)
+
     class Meta:
         model = TourPackage
-        fields = "__all__"
+        exclude = ['id', 'is_expired', 'is_featured', 'options', 'image', 'language']
+
+    def validate(self, attrs):
+        if attrs.get('ending_date') <= attrs.get("starting_date"):
+            raise ValidationError({'success': False, 'message': _(
+                "Invalid date interval for tour. Please check the starting and ending date you entered.")})
+        return attrs
+
+    def validate_title(self, title):
+        message = None
+        package = TourPackage.objects.filter(title=title)
+        if package.exists():
+            message = _("Tour already registered. If you want to edit it . Go to the edit page.")
+        elif len(title) < 5:
+            message = _("Invalid title. Consider giving a descriptive name for the Tour.")
+        if message:
+            raise ValidationError({'success': False, 'message': message})
+        return title
+
+    def validate_starting_date(self, starting_date):
+        if starting_date <= timezone.now().date():
+            raise ValidationError({'success': False, 'message': _(
+                "Invalid starting date for tour. Please check the date you entered.")})
+        return starting_date
+
+    def validate_ending_date(self, ending_date):
+        if ending_date <= timezone.now().date():
+            raise ValidationError({'success': False, 'message': _(
+                "Invalid ending date for tour. Please check the date you entered.")})
+        return ending_date
+
+    def validate_price(self, price):
+        if price <= 0:
+            raise ValidationError({'success': False, 'message': _(
+                "Invalid price tag. Price should be non negative number.")})
+        if price >= 5000:
+            raise ValidationError({'success': False, 'message': _(
+                "Invalid price tag. Please consider entering realistic price.")})
+        return price
+
+    def create(self, validated_data):
+        admin = self.context.get('admin')
+        with transaction.atomic():
+            package = TourPackage.objects.create(
+                agency=admin.agency,
+                title=validated_data.get('title'),
+                description=validated_data.get('description'),
+                starting_date=validated_data.get('starting_date'),
+                ending_date=validated_data.get('ending_date'),
+                price=validated_data.get('price'),
+            )
+
+            category = validated_data.get('category')[0].split(',')
+            options = validated_data.get('options')[0].split(',')
+            hotels = validated_data.get('hotels')[0].split(',')
+            images = validated_data.get('images')[0].split(',')
+
+            for image in images:
+                allowed_image_format = ['jpg', 'jpeg', 'png', 'avif', 'gif']
+                if image.split('.')[-1] not in allowed_image_format:
+                    raise ValidationError(
+                        {'success': False,
+                         'message': _(f"Image extension not allowed.Allowec exts:{allowed_image_format}'")})
+                try:
+                    package.images.append(image)
+                except AttributeError:
+                    package.images = [image]
+                    package.image = image
+
+            for each_category in category:
+                try:
+                    obj = Category.objects.get(id=each_category)
+                except Category.DoesNotExist:
+                    raise ValidationError(
+                        {'success': False, 'message': _(f"Category with id:{each_category} does not exist.")})
+                finally:
+                    package.category.add(obj)
+
+            for option in options:
+                try:
+                    obj = Options.objects.get(id=option)
+                except Options.DoesNotExist:
+                    raise ValidationError(
+                        {'success': False, 'message': _(f"Option with id:{option} does not exist.")})
+                finally:
+                    package.options.add(obj)
+
+            for hotel in hotels:
+                try:
+                    obj = Hotel.objects.get(id=hotel)
+                except Hotel.DoesNotExist:
+                    raise ValidationError(
+                        {'success': False, 'message': _(f"HOTEL with id:{hotel} does not exist.")})
+                finally:
+                    package.hotels.add(obj)
+
+            package.save()
+
+        return package
+
+    def to_representation(self, instance):
+        data = {
+            'success': 'ok',
+            'message': _("Tour Package created successfully!")
+        }
+        return data

@@ -2,7 +2,7 @@ from datetime import timedelta, datetime
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from rest_framework import filters
+from rest_framework import filters, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import RetrieveAPIView, GenericAPIView, get_object_or_404
 from rest_framework.generics import ListAPIView
@@ -46,9 +46,11 @@ class TourPackageDetailAPIView(RetrieveAPIView):
     serializer_class = TourPackageSerializer
     permission_classes = (AllowAny,)
 
-    def get_serializer_context(self):
-        data = super().get_serializer_context()
-        return data
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.serializer_class(instance=instance)
+        data = serializer.data
+        return Response(data)
 
 
 class GetRelatedToursAPIView(GenericAPIView):
@@ -94,7 +96,7 @@ class TourPackageSearchAPIView(GenericAPIView):
         if city and starting_date and ending_date:
             city = City.objects.filter(name=city)
             if city.exists():
-                duration_from, duration_to, activities, destinations = None, None, None, None
+                duration_from, duration_to, activities, destinations, category, options = None, None, None, None, None, None
                 if request.query_params.get('duration_from') and request.query_params.get('duration_to'):
                     duration_from = request.query_params.get('duration_from')
                     duration_to = request.query_params.get('duration_to')
@@ -102,6 +104,10 @@ class TourPackageSearchAPIView(GenericAPIView):
                     activities = request.query_params.get('activities')
                 if request.query_params.get('destinations'):
                     destinations = request.query_params.get('destinations')
+                if request.query_params.get('options'):
+                    options = request.query_params.get('options')
+                if request.query_params.get('category'):
+                    category = request.query_params.get('category')
 
                 temp_start = datetime.strptime(starting_date, '%Y-%m-%d').date()
                 temp_end = datetime.strptime(ending_date, '%Y-%m-%d').date()
@@ -141,10 +147,35 @@ class TourPackageSearchAPIView(GenericAPIView):
                     destination_list = [item for item in destinations.split(',')]
                     # print(destination_list)
                     for package in packages:
-                        filtered_destinations = [activity.name for activity in package.destinations.all()]
+                        filtered_destinations = [destination.name for destination in package.destinations.all()]
                         # print(filtered_destinations)
                         tmp = [item for item in destination_list if item in filtered_destinations]
                         if len(tmp) == len(destination_list):
+                            filtered_packages.append(package)
+                    packages = filtered_packages
+
+                # filtering against the options
+                if options:
+                    filtered_packages = []
+                    options_list = [item for item in options.split(',')]
+                    # print(options)
+                    for package in packages:
+                        filtered_options = [option.name for option in package.options.all()]
+                        # print(filtered_options)
+                        tmp = [item for item in options_list if item in filtered_options]
+                        if len(tmp) == len(options_list):
+                            filtered_packages.append(package)
+                    packages = filtered_packages
+
+                # filtering against the category
+                if category:
+                    filtered_packages = []
+                    category_list = [item for item in category.split(',')]
+                    for package in packages:
+                        filtered_category = [each_category.name for each_category in package.category.all()]
+                        # print(filtered_options)
+                        tmp = [item for item in category_list if item in filtered_category]
+                        if len(tmp) == len(category_list):
                             filtered_packages.append(package)
                     packages = filtered_packages
 
@@ -186,19 +217,23 @@ class ConfirmBookingAPIView(GenericAPIView):
         if created:
 
             serializer = CompanySerializer(package.agency)
+            data = serializer.data
+            data['phone_number'] = package.agency.admin.phone_number
+            obj.comment = request.data.get('comment', None)
+            obj.save()
 
             message = (f"You have a client!\n"
                        f"Tour package: {package.title}\n"
-                       f"user: Firdavs Jalolov\n"
-                       f"username: @first_ac_firdavs\n"
-                       f"phone_number: +998907689098")
+                       f"user: {request.user.first_name}\n"
+                       f"username: @fredo\n"
+                       f"phone_number: +{request.user.phone_number}")
 
             try:
                 send_message(message, package.agency.chat_id)
             except:
                 raise ValidationError({'detail': "Agency is not a member of the bot."})
 
-            return Response({'agency': serializer.data})
+            return Response({'agency': data})
         raise ValidationError({'detail': _("You have already booked for that tour package.")})
 
 
@@ -241,13 +276,12 @@ class GetFiltersAPIView(GenericAPIView):
 
     def get(self, request, pk):
         city = City.objects.filter(id=pk)
-        if city.exists:
+        if city.exists():
             city = city.first()
             features = [feature.name for feature in city.features.all()]
 
             activities = []
             destinations = []
-            durations = []
 
             packages = TourPackage.objects.filter(city_to=city)
             for package in packages:
@@ -259,28 +293,35 @@ class GetFiltersAPIView(GenericAPIView):
                     if activity.name not in activities:
                         activities.append(activity.name)
 
-                if (package.ending_date - package.starting_date).days not in durations:
-                    durations.append((package.ending_date - package.starting_date).days)
+            # STATIC duration generator no need for dynamic one
+            # if (package.ending_date - package.starting_date).days not in durations:
+            #     durations.append((package.ending_date - package.starting_date).days)
 
-            durations_ = []
+            # durations_ = []
+            #
+            # # checking if duration period is less than 4
+            # if len(durations) <= 4:
+            #     range_num = len(durations)
+            # else:
+            #     range_num = 4
+            #
+            # # forming duration filter
+            # for _ in range(len(durations)):
+            #     try:
+            #         durations_.append({"start": str(durations_[-1].get('end')), 'end': str(min(durations))})
+            #     except IndexError:
+            #         durations_.append({"start": str(0), 'end': str(min(durations))})
+            #     finally:
+            #         durations.remove(min(durations))
 
-            # checking if duration period is less than 4
-            if len(durations) <= 3:
-                range_num = len(durations)
-            else:
-                range_num = 4
-
-            # forming duration filter
-            for _ in range(range_num):
-                try:
-                    durations_.append({"start": durations_[-1].get('end'), 'end': min(durations)})
-                except IndexError:
-                    durations_.append({"start": 0, 'end': min(durations)})
-                finally:
-                    durations.remove(min(durations))
+            durations = []
+            for _ in range(4):
+                durations = [{'start': str(item), 'end': str(item + 3)} for item in
+                             range(0, 10, 3)]
 
             return Response(
-                {"activities": activities, 'destinations': destinations, 'features': features, 'durations': durations_})
+                {"activities": activities, 'destinations': destinations, 'features': features,
+                 'durations': durations})
         return Response([])
 
 
@@ -320,3 +361,25 @@ class GetCategoryAPIView(GenericAPIView):
     def get(self, request):
         serializer = self.serializer_class(instance=self.get_queryset(), many=True)
         return Response({'categories': serializer.data})
+
+
+class GetTourOptionsAPIView(GenericAPIView):
+    permission_classes = (AllowAny,)
+
+    def get(self, request, pk):
+        package = TourPackage.objects.filter(id=pk).first()
+        options = []
+        if package:
+            options = [option.name for option in package.options.all()]
+        return Response({"options": options})
+
+
+class GetTourCategoryAPIView(GenericAPIView):
+    permission_classes = (AllowAny,)
+
+    def get(self, request, pk):
+        package = TourPackage.objects.filter(id=pk).first()
+        category_list = []
+        if package:
+            category_list = [category_obj.name for category_obj in package.category.all()]
+        return Response({"category": category_list})
