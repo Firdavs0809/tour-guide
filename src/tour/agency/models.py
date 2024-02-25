@@ -14,6 +14,10 @@ class Hotel(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name = "hotel"
+        verbose_name_plural = "hotel_list"
+
 
 class TempCompany(models.Model):
     name = models.CharField(max_length=200, blank=False, null=False, )
@@ -102,7 +106,7 @@ class Options(models.Model):
 # Agency Tour Packages model
 class TourPackage(models.Model):
     agency = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='packages')
-    hotel = models.ManyToManyField(Hotel, blank=True)
+    hotels = models.ManyToManyField(Hotel, blank=True)
     category = models.ManyToManyField(Category, blank=True)
 
     title = models.CharField(max_length=200, null=True, blank=True)
