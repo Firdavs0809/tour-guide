@@ -172,7 +172,6 @@ class ConfirmPhoneNumberSerializer(serializers.Serializer):
     def validate(self, attrs):
         phone_number = attrs.get('phone_number', 1)
         temp = Temp.objects.filter(phone_number=str(phone_number)).first()
-        print(temp)
         if temp and not temp.verified:
             if int(attrs.get('code')) == int(temp.verified_code) or attrs.get('code') == 99999:
                 temp.verified = True

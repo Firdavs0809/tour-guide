@@ -100,7 +100,6 @@ class AgencyRegistrationActivationSerializer(serializers.Serializer):
                 )
 
             except IntegrityError as e:
-                print(e)
                 if "UNIQUE constraint" in e.args:
                     error_message = "Please take a look at the Naming of the company that company already exists."
                 else:

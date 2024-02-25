@@ -4,7 +4,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
-from ....agency.models import TourPackage, Company,Options
+from ....agency.models import TourPackage, Company, Options
 from ....agency.serializers import CompanySerializer
 from ....user.models import User
 import requests
@@ -32,7 +32,6 @@ class AgencyRegisterAPIView(GenericAPIView):
         if response.get('activation_code', None):
             serializer.save()
             return Response(response, status=status.HTTP_201_CREATED)
-        print(response)
         return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -53,7 +52,6 @@ class AgencyRegistrationActivationAPIView(GenericAPIView):
         serializer.validated_data['activation_url'] = request.build_absolute_uri(
             reverse('api:auth-register-activation'))
         response = self.check_user_activation(serializer)
-        print(response)
         serializer.save()
         return Response({'detail': 'ok'})
 
@@ -79,8 +77,8 @@ class TourPackageCreateAPIView(CreateAPIView):
     def perform_create(self, serializer):
         serializer.save()
 
-    def create(self, request,*args,**kwargs):
-        serializer = self.serializer_class(data=request.data,context={'admin':request.user})
+    def create(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data, context={'admin': request.user})
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(serializer.data,status=status.HTTP_201_CREATED)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
