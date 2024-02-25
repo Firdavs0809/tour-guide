@@ -106,7 +106,7 @@ class Options(models.Model):
 # Agency Tour Packages model
 class TourPackage(models.Model):
     agency = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='packages')
-    hotels = models.ManyToManyField(Hotel, blank=True)
+    # hotels = models.ManyToManyField(Hotel, blank=True)
     category = models.ManyToManyField(Category, blank=True)
 
     title = models.CharField(max_length=200, null=True, blank=True)
