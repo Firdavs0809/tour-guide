@@ -1,4 +1,7 @@
 import json
+
+import requests
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework.exceptions import ValidationError, Throttled
 from rest_framework.response import Response
@@ -6,9 +9,11 @@ from rest_framework.generics import GenericAPIView, get_object_or_404
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from oauthlib.oauth2 import Server
-
+from rest_framework.reverse import reverse
 
 from tour.user.models import User
+
+from tour.oauth2.models import AccessToken, RefreshToken
 from .serializers import (SignInSerializer, RefreshTokenSerializer, LogoutSerializer,
                           RegistrationSerializer, ActivationSerializer, ForgetPasswordSerializer,
                           ResetPasswordSerializer, ConfirmPhoneNumberSerializer)
@@ -138,16 +143,25 @@ class ConfirmPhoneNumberAPIView(GenericAPIView):
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        return Response({'detail': 'Ok'}, status=status.HTTP_200_OK)
+
+        refresh_token = RefreshToken.objects.filter(
+            user=User.objects.get(phone_number=request.data.get('phone_number'))).last()
+        if refresh_token:
+            access_token = refresh_token.access_token
+            if access_token.is_expired():
+                access_token.expires = timezone.now() + timezone.timedelta(seconds=604800)
+                access_token.save()
+            return Response({'detail': 'Ok', 'access_token': access_token.token}, status=status.HTTP_200_OK)
+        raise ValidationError({'success': False, 'message': _('User with that phone number not exists.')})
 
 
 # Reset Password
 class ResetPasswordView(GenericAPIView):
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticated,)
     serializer_class = ResetPasswordSerializer
 
     def post(self, request, *args, **kwargs):
-        user = get_object_or_404(queryset=User, phone_number=request.data.get('phone_number'))
+        user = request.user
         serializer = self.serializer_class(instance=user, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()

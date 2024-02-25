@@ -191,12 +191,10 @@ class ResetPasswordSerializer(serializers.ModelSerializer):
     password = serializers.CharField(max_length=28, style={'input_type': 'password'}, required=True, write_only=True)
     password_confirm = serializers.CharField(max_length=28, style={'input_type': 'password'}, required=True,
                                              write_only=True)
-    phone_number = serializers.CharField(max_length=13, min_length=12, required=True, write_only=True,
-                                         validators=[phone_regex])
 
     class Meta:
         model = User
-        fields = ['phone_number', 'password', 'password_confirm', ]
+        fields = ['password', 'password_confirm', ]
 
     def validate(self, attrs):
 
