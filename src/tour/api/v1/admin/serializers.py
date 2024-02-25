@@ -130,7 +130,7 @@ class TourPackageCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TourPackage
-        exclude = ['id', 'is_expired', 'is_featured', 'options', 'image', 'language']
+        exclude = ['id', 'is_expired', 'is_featured', 'image', 'language']
 
     def validate(self, attrs):
         if attrs.get('ending_date') <= attrs.get("starting_date"):
