@@ -2,14 +2,17 @@ from dotenv import load_dotenv
 import requests
 import os
 from bs4 import BeautifulSoup
-import json
-from argparse import ArgumentParser
 import urllib.request
 
 load_dotenv()
 TOKEN = os.getenv('TG_TOKEN')
 
+ESKIZ_EMAIL = os.getenv('ESKIZ_EMAIL')
+ESKIZ_PASSWORD = os.getenv("ESKIZ_PASSWORD")
+AUTHORIZATION_URL = 'http://notify.eskiz.uz/api/auth/login/'
 
+
+# Notify the AGENCY about a client
 def send_message(message, chat_id):
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage?chat_id={chat_id}&text={message}"
     requests.get(url)
@@ -40,3 +43,38 @@ def check_username_exists(username):
         result = False
 
     return result
+
+
+# Sending User sms on Account Activation
+class SendSMS:
+    def __init__(self, phone_number, confirmation_code):
+        self.phone = phone_number
+        self.code = confirmation_code
+
+    def authorize(self):
+        data = {
+            'email': ESKIZ_EMAIL,
+            'password': ESKIZ_PASSWORD
+        }
+        response = requests.post(url=AUTHORIZATION_URL, data=data)
+        data = response.json()['data']
+        return data.get('token')
+
+    def send_message(self):
+        token = self.authorize()
+        if token:
+            payload = {
+                'mobile_phone': self.phone,
+                'message': f"Confirmation code has been sent. {self.code}",
+                'from': 3700,
+            }
+            headers = {
+                'Authorization': f"Bearer {token}"
+            }
+            response = requests.post(url="http://notify.eskiz.uz/api/message/sms/send", headers=headers, data=payload)
+            return response.json()
+
+
+def send_sms(phone_number, code):
+    sms = SendSMS(phone_number, code)
+    return sms.send_message()

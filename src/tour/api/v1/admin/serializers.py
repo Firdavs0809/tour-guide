@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from tour.agency.models import Company, TempCompany, TourPackage, Category, Options, Hotel
+from tour.agency.models import Company, TempCompany, TourPackage, Category, Options, Hotel, City
 
 from tour.user.models import User
 import requests
@@ -148,6 +148,22 @@ class TourPackageCreateSerializer(serializers.ModelSerializer):
             raise ValidationError({'success': False, 'message': message})
         return title
 
+    def validate_airport_from(self, airport_from):
+        message = None
+        if len(airport_from) < 5:
+            message = _("Invalid Airport. Consider giving a descriptive Airport name for the Tour.")
+        if message:
+            raise ValidationError({'success': False, 'message': message})
+        return airport_from
+
+    def validate_airport_to(self, airport_to):
+        message = None
+        if len(airport_to) < 5:
+            message = _("Invalid Airport. Consider giving a descriptive Airport name for the Tour.")
+        if message:
+            raise ValidationError({'success': False, 'message': message})
+        return airport_to
+
     def validate_starting_date(self, starting_date):
         if starting_date <= timezone.now().date():
             raise ValidationError({'success': False, 'message': _(
@@ -159,6 +175,18 @@ class TourPackageCreateSerializer(serializers.ModelSerializer):
             raise ValidationError({'success': False, 'message': _(
                 "Invalid ending date for tour. Please check the date you entered.")})
         return ending_date
+
+    def validate_city_from(self, city_from):
+        if not City.objects.filter(id=city_from).exists():
+            raise ValidationError({'success': False, 'message': _(
+                "Invalid city_from for tour. Please select valid city.")})
+        return city_from
+
+    def validate_city_to(self, city_to):
+        if not City.objects.filter(id=city_to).exists():
+            raise ValidationError({'success': False, 'message': _(
+                "Invalid city_to for tour. Please select valid city.")})
+        return city_to
 
     def validate_price(self, price):
         if price <= 0:
@@ -179,6 +207,10 @@ class TourPackageCreateSerializer(serializers.ModelSerializer):
                 starting_date=validated_data.get('starting_date'),
                 ending_date=validated_data.get('ending_date'),
                 price=validated_data.get('price'),
+                airport_from=validated_data.get('airport_from'),
+                airport_to=validated_data.get('airport_to'),
+                city_from_id=validated_data.get('city_from'),
+                city_to_id=validated_data.get('city_to')
             )
 
             category = validated_data.get('category')[0].split(',')
