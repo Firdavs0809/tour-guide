@@ -1,3 +1,5 @@
+import threading
+
 from dotenv import load_dotenv
 import requests
 import os
@@ -45,9 +47,10 @@ def check_username_exists(username):
     return result
 
 
-# Sending User sms on Account Activation
-class SendSMS:
-    def __init__(self, phone_number, confirmation_code):
+# Sending User sms on Account Activation via Thread
+class SendSMSThread(threading.Thread):
+    def __init__(self, phone_number, confirmation_code, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.phone = phone_number
         self.code = confirmation_code
 
@@ -60,7 +63,7 @@ class SendSMS:
         data = response.json()['data']
         return data.get('token')
 
-    def send_message(self):
+    def run(self):
         token = self.authorize()
         if token:
             payload = {
@@ -76,5 +79,5 @@ class SendSMS:
 
 
 def send_sms(phone_number, code):
-    sms = SendSMS(phone_number, code)
-    return sms.send_message()
+    sms = SendSMSThread(phone_number, code)
+    return sms.run()

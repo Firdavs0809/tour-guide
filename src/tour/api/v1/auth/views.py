@@ -46,6 +46,7 @@ class RegistrationActivationView(GenericAPIView):
         try:
             root = serializer.save()
             if root:
+                # implement code to sent sms
                 return Response({"detail": "success"}, status=status.HTTP_200_OK)
             else:
                 return Response({"detail": "invalid verification"}, status=status.HTTP_400_BAD_REQUEST)

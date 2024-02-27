@@ -131,10 +131,10 @@ class TourPackageSearchAPIView(GenericAPIView):
                 # filtering against the activities included in the tour
                 if activities:
                     filtered_packages = []
-                    activity_list = [item.lower().title() for item in activities.split(',')]
-                    # print(activity_list)
+                    activity_list = [item.lower() for item in activities.split(',')]
+                    print(activity_list)
                     for package in packages:
-                        filtered_activities = [activity.name for activity in package.activities.all()]
+                        filtered_activities = [activity.name.lower() for activity in package.activities.all()]
                         # print(filtered_activities)
                         tmp = [item for item in activity_list if item in filtered_activities]
                         if len(tmp) == len(activity_list):
