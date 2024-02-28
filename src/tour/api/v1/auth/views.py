@@ -46,8 +46,15 @@ class RegistrationActivationView(GenericAPIView):
         try:
             root = serializer.save()
             if root:
-                # refresh_token = RefreshToken.objects.filter(user=root).first()
-                return Response({'detail': 'Ok', }, status=status.HTTP_200_OK)
+                request.data['username'] = root.phone_number
+                oauth2 = JSONOAuthLibCore(
+                    Server(OAuth2FrontValidator()))
+                uri, headers, body, status_ = oauth2.create_token_response(request)
+
+                data = json.loads(body)
+                if status_ != 200:
+                    raise ValidationError({'username': [data['error']]})
+                return Response(data=data, status=status.HTTP_200_OK)
             else:
                 return Response({"detail": "invalid verification"}, status=status.HTTP_400_BAD_REQUEST)
 
