@@ -46,7 +46,7 @@ class RegistrationActivationView(GenericAPIView):
         try:
             root = serializer.save()
             if root:
-                refresh_token = RefreshToken.objects.filter(user=root)
+                refresh_token = RefreshToken.objects.filter(user=root).first()
                 return Response({'detail': 'Ok', 'access_token': refresh_token.access_token.token,
                                  'refresh_token': refresh_token.token}, status=status.HTTP_200_OK)
             else:
