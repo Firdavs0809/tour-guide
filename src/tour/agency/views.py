@@ -136,10 +136,10 @@ class TourPackageSearchAPIView(GenericAPIView):
                     if activities:
                         filtered_packages = []
                         activity_list = [int(item) for item in activities.split(',')]
-                        print(activity_list)
+                        # print(activity_list)
                         for package in packages:
                             filtered_activities = [activity.id for activity in package.activities.all()]
-                            print(filtered_activities)
+                            # print(filtered_activities)
                             tmp = [item for item in activity_list if item in filtered_activities]
                             if len(tmp) == len(activity_list):
                                 filtered_packages.append(package)
@@ -186,7 +186,6 @@ class TourPackageSearchAPIView(GenericAPIView):
                     serializer = self.serializer_class(packages, many=True)
                     return Response(serializer.data)
                 except ValueError as e:
-                    print(e)
                     raise ValidationError({'success': False, 'message': _(
                         'You should send the ids of options,category. Non id value\'s been sent.')})
 
@@ -286,7 +285,7 @@ class GetFiltersAPIView(GenericAPIView):
         city = City.objects.filter(id=pk)
         if city.exists():
             city = city.first()
-            features = FeatureSerializer(city.features.all(),many=True).data
+            features = FeatureSerializer(city.features.all(), many=True).data
 
             activities = []
             destinations = []
@@ -346,7 +345,7 @@ class SetAgencyIdAPIView(GenericAPIView):
         return Response({'detail': 'ok'})
 
 
-class GetOptionsAPIView(GenericAPIView):
+class OptoinsListAPIViewi(GenericAPIView):
     serializer_class = OptionsSerializer
     permission_classes = (AllowAny,)
     queryset = Options
@@ -359,7 +358,7 @@ class GetOptionsAPIView(GenericAPIView):
         return Response({'options': serializer.data})
 
 
-class GetCategoryAPIView(GenericAPIView):
+class CategoryListAPIView(GenericAPIView):
     serializer_class = CategorySerializer
     permission_classes = (AllowAny,)
     queryset = Category
@@ -372,7 +371,7 @@ class GetCategoryAPIView(GenericAPIView):
         return Response({'categories': serializer.data})
 
 
-class GetTourOptionsAPIView(GenericAPIView):
+class GetTourPackageOptionsAPIView(GenericAPIView):
     permission_classes = (AllowAny,)
 
     def get(self, request, pk):
@@ -383,7 +382,7 @@ class GetTourOptionsAPIView(GenericAPIView):
         return Response({"options": options})
 
 
-class GetTourCategoryAPIView(GenericAPIView):
+class GetTourPackageCategoryAPIView(GenericAPIView):
     permission_classes = (AllowAny,)
 
     def get(self, request, pk):
@@ -394,7 +393,19 @@ class GetTourCategoryAPIView(GenericAPIView):
         return Response({"category": category_list})
 
 
-class GetSingleOptionAPIView(GenericAPIView):
+class GetTourPackageHotelsAPIView(GenericAPIView):
+    permission_classes = (AllowAny,)
+    serializer_class = HotelSerializer
+
+    def get(self, request, pk):
+        package = TourPackage.objects.filter(id=pk).first()
+        hotels = []
+        if package:
+            hotels = self.serializer_class(package.hotels, many=True).data
+        return Response({"hotels": hotels})
+
+
+class OptionsDetailAPIView(GenericAPIView):
     serializer_class = OptionsSerializer
 
     def get(self, request, pk):
@@ -406,7 +417,7 @@ class GetSingleOptionAPIView(GenericAPIView):
             raise ValidationError({'success': False, 'message': _(f'Option with that id:{pk} does not exist.')})
 
 
-class GetSingleCategoryAPIView(GenericAPIView):
+class CategoryDetailAPIView(GenericAPIView):
     serializer_class = CategorySerializer
 
     def get(self, request, pk):
@@ -418,7 +429,7 @@ class GetSingleCategoryAPIView(GenericAPIView):
             raise ValidationError({'success': False, 'message': _(f'Category with that id:{pk} does not exist.')})
 
 
-class GetSingleHotelAPIView(GenericAPIView):
+class HotelsDetailAPIView(GenericAPIView):
     serializer_class = HotelSerializer
 
     def get(self, request, pk):

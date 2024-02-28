@@ -1,9 +1,9 @@
 from django.urls import path
 from .views import TourPackageListAPIView, TourPackageDetailAPIView, TourPackageSearchAPIView, GetCityMatchAPIView, \
     ImageUploadView, ConfirmBookingAPIView, GetRelatedToursAPIView, GetFeaturedToursAPIView, GetFiltersAPIView, \
-    GetPopularCityAPIView, GetCityFeaturesAPIView, ExcludeExpiredPackages, SetAgencyIdAPIView, GetCategoryAPIView, \
-    GetOptionsAPIView, GetTourCategoryAPIView, GetTourOptionsAPIView, GetSingleHotelAPIView, GetSingleCategoryAPIView, \
-    GetSingleOptionAPIView
+    GetPopularCityAPIView, GetCityFeaturesAPIView, ExcludeExpiredPackages, SetAgencyIdAPIView, CategoryListAPIView, \
+    OptoinsListAPIViewi, GetTourPackageCategoryAPIView, GetTourPackageOptionsAPIView, HotelsDetailAPIView, \
+    CategoryDetailAPIView, OptionsDetailAPIView,GetTourPackageHotelsAPIView
 
 urlpatterns = [
     # gives the top package to a city(default)
@@ -23,8 +23,9 @@ urlpatterns = [
     path('packages/<int:pk>/related-tours/', GetRelatedToursAPIView.as_view(), name='get-related-tours'),
 
     # get package category and options
-    path('packages/<int:pk>/category/', GetTourCategoryAPIView.as_view(), name='get-tour-category'),
-    path('packages/<int:pk>/options/', GetTourOptionsAPIView.as_view(), name='get-tour-options'),
+    path('packages/<int:pk>/category/', GetTourPackageCategoryAPIView.as_view(), name='get-tour-category'),
+    path('packages/<int:pk>/options/', GetTourPackageOptionsAPIView.as_view(), name='get-tour-options'),
+    path('packages/<int:pk>/hotels/', GetTourPackageHotelsAPIView.as_view(), name='get-tour-hotels'),
 
     # get featured tours in Home page
     path('featured-tours/', GetFeaturedToursAPIView.as_view(), name='get-related-tours'),
@@ -34,9 +35,6 @@ urlpatterns = [
     path('city/popular/', GetPopularCityAPIView.as_view(), name='get-city-popular'),
     path('city/<int:pk>/filters/', GetFiltersAPIView.as_view(), name='get-filters'),
     path('city/<int:cityId>/features/', GetCityFeaturesAPIView.as_view(), name='get-features'),
-    path('city/<int:cityId>/options/', GetCityFeaturesAPIView.as_view(), name='get-options'),
-    path('city/<int:cityId>/category/', GetCityFeaturesAPIView.as_view(), name='get-category'),
-    path('city/<int:cityId>/hotels/', GetCityFeaturesAPIView.as_view(), name='get-hotels'),
 
     # removes the expired packages
     path('packages/expire/', ExcludeExpiredPackages.as_view(), name='auto-expire-packages'),
@@ -45,12 +43,12 @@ urlpatterns = [
     path('set-chat-id/', SetAgencyIdAPIView.as_view(), name='set-chat-id'),
 
     # needed for tour package creation gives the existing options and category
-    path('options/', GetOptionsAPIView.as_view(), name='get-options'),
-    path('category/', GetCategoryAPIView.as_view(), name='get-categories'),
+    path('options/', OptoinsListAPIViewi.as_view(), name='get-options'),
+    path('category/', CategoryListAPIView.as_view(), name='get-categories'),
 
     # get option, category, hotel detail views
-    path('options/<int:pk>/', GetSingleOptionAPIView.as_view(), name='get-option-detail'),
-    path('category/<int:pk>/', GetCategoryAPIView.as_view(), name='get-category-detail'),
-    path('hotel/<int:pk>/', GetSingleHotelAPIView.as_view(), name='get-hotel-detail'),
+    path('options/<int:pk>/', OptionsDetailAPIView.as_view(), name='get-option-detail'),
+    path('category/<int:pk>/', CategoryDetailAPIView.as_view(), name='get-category-detail'),
+    path('hotel/<int:pk>/', HotelsDetailAPIView.as_view(), name='get-hotel-detail'),
 
 ]

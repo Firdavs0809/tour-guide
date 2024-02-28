@@ -84,8 +84,8 @@ class TourPackageSerializer(serializers.ModelSerializer):
 class TourPackageSerializerList(serializers.ModelSerializer):
     class Meta:
         model = TourPackage
-        exclude = ['city_from', 'city_to', 'destinations', 'activities', 'hotels', 'language', 'is_expired',
-                   'is_featured', 'options', 'category']
+        exclude = ['destinations', 'activities', 'hotels', 'language', 'is_expired',
+                   'is_featured', 'options', 'category','images']
 
 
 class ImageUploadSerializer(serializers.ModelSerializer):
