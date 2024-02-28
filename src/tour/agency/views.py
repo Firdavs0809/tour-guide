@@ -192,8 +192,8 @@ class ImageUploadView(GenericAPIView):
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response({"detail": "ok", 'message': 'Image was uploaded successfully!'})
+        obj=serializer.save()
+        return Response({"detail": "ok", 'image': str(obj.file).split('/')[-1]})
 
 
 # Confirm Booking API View

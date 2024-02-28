@@ -21,6 +21,7 @@ class AgencyRegisterSerializer(serializers.Serializer):
     password = serializers.CharField(max_length=30, required=True, write_only=True)
     name = serializers.CharField(max_length=56, required=True, )
     licence_number = serializers.CharField(required=True, max_length=12, )
+    licence = serializers.CharField(max_length=255,required=True)
     address = serializers.CharField(required=True, max_length=95, )
     tg_username = serializers.CharField(required=True, max_length=32, min_length=5)
     website = serializers.CharField(max_length=200, required=False)
@@ -46,6 +47,7 @@ class AgencyRegisterSerializer(serializers.Serializer):
                     phone_number="+" + self.validated_data.get('phone_number', None).replace('+', ''),
                     phone_number_2=self.validated_data.get('phone_number_2', None),
                     licence_number=self.validated_data.get('licence_number', None),
+                    licence=self.validated_data.get('licence', None),
                     address=self.validated_data.get('address', None),
                     tg_username=self.validated_data.get('tg_username', None),
                     website=self.validated_data.get('website', "No website"),
@@ -63,6 +65,7 @@ class AgencyRegisterSerializer(serializers.Serializer):
                 temp.name = self.validated_data.get("name")
                 temp.phone_number_2 = self.validated_data.get("phone_number_2")
                 temp.licence_number = self.validated_data.get("licence_number")
+                temp.licence = self.validated_data.get("licence")
                 temp.address = self.validated_data.get("address")
                 temp.tg_username = self.validated_data.get("tg_username")
                 temp.website = self.validated_data.get("website", "No Website")
@@ -93,6 +96,7 @@ class AgencyRegistrationActivationSerializer(serializers.Serializer):
                     admin=User.objects.get(phone_number=tmp.phone_number),
                     phone_number_2=tmp.phone_number_2,
                     licence_number=tmp.licence_number,
+                    licence=tmp.licence,
                     tg_username=tmp.tg_username,
                     website=tmp.website,
                     address=tmp.address,
