@@ -188,6 +188,8 @@ class TourPackageSearchAPIView(GenericAPIView):
                 except ValueError as e:
                     raise ValidationError({'success': False, 'message': _(
                         'You should send the ids of options,category. Non id value\'s been sent.')})
+                except Exception as e:
+                    print(e)
 
         return Response([])
 
