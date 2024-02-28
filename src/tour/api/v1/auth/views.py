@@ -46,15 +46,15 @@ class RegistrationActivationView(GenericAPIView):
         try:
             root = serializer.save()
             if root:
-                refresh_token = RefreshToken.objects.filter(user=root).first()
-                return Response({'detail': 'Ok', 'access_token': refresh_token.access_token.token,
-                                 'refresh_token': refresh_token.token}, status=status.HTTP_200_OK)
+                # refresh_token = RefreshToken.objects.filter(user=root).first()
+                return Response({'detail': 'Ok', }, status=status.HTTP_200_OK)
             else:
                 return Response({"detail": "invalid verification"}, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
             error = e
-            return Response({"detail": e})
+            print(error)
+            return Response({"detail": 'Error occurred during activation. Contact support!'})
 
 
 class SignInView(GenericAPIView):
