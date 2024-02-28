@@ -8,11 +8,11 @@ from rest_framework.generics import RetrieveAPIView, GenericAPIView, get_object_
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from .models import TourPackage, Company, Booking
+from .models import TourPackage, Company, Booking, Hotel
 from .serializers import TourPackageSerializer, ImageUploadSerializer, TourPackageSerializerList
 from .models import City, Options, Category
 from .serializers import ConfirmBookingSerializer, CompanySerializer, FeatureSerializer, PopularCitySerializer, \
-    OptionsSerializer, CategorySerializer
+    OptionsSerializer, CategorySerializer, HotelSerializer, DestinationSerializer, ActivitySerializer
 from .utils import send_message
 from rest_framework.filters import OrderingFilter
 from .custom_pagination import CustomPagination, CustomCursorPagination
@@ -81,11 +81,14 @@ class GetFeaturedToursAPIView(GenericAPIView):
 
 
 class TourPackageSearchAPIView(GenericAPIView):
+    serializer_class = TourPackageSerializerList
     queryset = TourPackage.objects.all()
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ['starting_date']
     ordering = ['starting_date']
     permission_classes = (AllowAny,)
+
+    # pagination_class = CustomCursorPagination
 
     def get(self, request):
 
@@ -128,59 +131,64 @@ class TourPackageSearchAPIView(GenericAPIView):
                             filtered_packages.append(package)
                     packages = filtered_packages
 
-                # filtering against the activities included in the tour
-                if activities:
-                    filtered_packages = []
-                    activity_list = [item.lower() for item in activities.split(',')]
-                    print(activity_list)
-                    for package in packages:
-                        filtered_activities = [activity.name.lower() for activity in package.activities.all()]
-                        # print(filtered_activities)
-                        tmp = [item for item in activity_list if item in filtered_activities]
-                        if len(tmp) == len(activity_list):
-                            filtered_packages.append(package)
-                    packages = filtered_packages
+                try:
+                    # filtering against the activities included in the tour
+                    if activities:
+                        filtered_packages = []
+                        activity_list = [int(item) for item in activities.split(',')]
+                        print(activity_list)
+                        for package in packages:
+                            filtered_activities = [activity.id for activity in package.activities.all()]
+                            print(filtered_activities)
+                            tmp = [item for item in activity_list if item in filtered_activities]
+                            if len(tmp) == len(activity_list):
+                                filtered_packages.append(package)
+                        packages = filtered_packages
 
-                # filtering against the destinations
-                if destinations:
-                    filtered_packages = []
-                    destination_list = [item for item in destinations.split(',')]
-                    # print(destination_list)
-                    for package in packages:
-                        filtered_destinations = [destination.name for destination in package.destinations.all()]
-                        # print(filtered_destinations)
-                        tmp = [item for item in destination_list if item in filtered_destinations]
-                        if len(tmp) == len(destination_list):
-                            filtered_packages.append(package)
-                    packages = filtered_packages
+                    # filtering against the destinations
+                    if destinations:
+                        filtered_packages = []
+                        destination_list = [int(item) for item in destinations.split(',')]
+                        # print(destination_list)
+                        for package in packages:
+                            filtered_destinations = [destination.id for destination in package.destinations.all()]
+                            # print(filtered_destinations)
+                            tmp = [item for item in destination_list if item in filtered_destinations]
+                            if len(tmp) == len(destination_list):
+                                filtered_packages.append(package)
+                        packages = filtered_packages
 
-                # filtering against the options
-                if options:
-                    filtered_packages = []
-                    options_list = [item for item in options.split(',')]
-                    # print(options)
-                    for package in packages:
-                        filtered_options = [option.name for option in package.options.all()]
-                        # print(filtered_options)
-                        tmp = [item for item in options_list if item in filtered_options]
-                        if len(tmp) == len(options_list):
-                            filtered_packages.append(package)
-                    packages = filtered_packages
+                    # filtering against the options
+                    if options:
+                        filtered_packages = []
+                        options_list = [int(item) for item in options.split(',')]
+                        # print(options)
+                        for package in packages:
+                            filtered_options = [option.id for option in package.options.all()]
+                            # print(filtered_options)
+                            tmp = [item for item in options_list if item in filtered_options]
+                            if len(tmp) == len(options_list):
+                                filtered_packages.append(package)
+                        packages = filtered_packages
 
-                # filtering against the category
-                if category:
-                    filtered_packages = []
-                    category_list = [item for item in category.split(',')]
-                    for package in packages:
-                        filtered_category = [each_category.name for each_category in package.category.all()]
-                        # print(filtered_options)
-                        tmp = [item for item in category_list if item in filtered_category]
-                        if len(tmp) == len(category_list):
-                            filtered_packages.append(package)
-                    packages = filtered_packages
+                    # filtering against the category
+                    if category:
+                        filtered_packages = []
+                        category_list = [int(item) for item in category.split(',')]
+                        for package in packages:
+                            filtered_category = [each_category.id for each_category in package.category.all()]
+                            # print(filtered_options)
+                            tmp = [item for item in category_list if item in filtered_category]
+                            if len(tmp) == len(category_list):
+                                filtered_packages.append(package)
+                        packages = filtered_packages
 
-                serializer = TourPackageSerializer(packages, many=True)
-                return Response(data=serializer.data)
+                    serializer = self.serializer_class(packages, many=True)
+                    return Response(serializer.data)
+                except ValueError as e:
+                    print(e)
+                    raise ValidationError({'success': False, 'message': _(
+                        'You should send the ids of options,category. Non id value\'s been sent.')})
 
         return Response([])
 
@@ -192,7 +200,7 @@ class ImageUploadView(GenericAPIView):
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        obj=serializer.save()
+        obj = serializer.save()
         return Response({"detail": "ok", 'image': str(obj.file).split('/')[-1]})
 
 
@@ -278,7 +286,7 @@ class GetFiltersAPIView(GenericAPIView):
         city = City.objects.filter(id=pk)
         if city.exists():
             city = city.first()
-            features = [feature.name for feature in city.features.all()]
+            features = FeatureSerializer(city.features.all(),many=True).data
 
             activities = []
             destinations = []
@@ -286,12 +294,12 @@ class GetFiltersAPIView(GenericAPIView):
             packages = TourPackage.objects.filter(city_to=city)
             for package in packages:
                 for dest in package.destinations.all():
-                    if dest.name not in destinations:
-                        destinations.append(dest.name)
+                    if dest not in destinations:
+                        destinations.append(dest)
 
                 for activity in package.activities.all():
-                    if activity.name not in activities:
-                        activities.append(activity.name)
+                    if activity not in activities:
+                        activities.append(activity)
 
             # STATIC duration generator no need for dynamic one
             # if (package.ending_date - package.starting_date).days not in durations:
@@ -320,7 +328,8 @@ class GetFiltersAPIView(GenericAPIView):
                              range(0, 10, 3)]
 
             return Response(
-                {"activities": activities, 'destinations': destinations, 'features': features,
+                {"activities": ActivitySerializer(activities, many=True).data,
+                 'destinations': DestinationSerializer(destinations, many=True).data, 'features': features,
                  'durations': durations})
         return Response([])
 
@@ -383,3 +392,39 @@ class GetTourCategoryAPIView(GenericAPIView):
         if package:
             category_list = [category_obj.name for category_obj in package.category.all()]
         return Response({"category": category_list})
+
+
+class GetSingleOptionAPIView(GenericAPIView):
+    serializer_class = OptionsSerializer
+
+    def get(self, request, pk):
+        try:
+            option = Options.objects.get(id=pk)
+            serializer = self.serializer_class(option)
+            return Response(serializer.data)
+        except Options.DoesNotExist:
+            raise ValidationError({'success': False, 'message': _(f'Option with that id:{pk} does not exist.')})
+
+
+class GetSingleCategoryAPIView(GenericAPIView):
+    serializer_class = CategorySerializer
+
+    def get(self, request, pk):
+        try:
+            category = Category.objects.get(id=pk)
+            serializer = self.serializer_class(category)
+            return Response(serializer.data)
+        except Category.DoesNotExist:
+            raise ValidationError({'success': False, 'message': _(f'Category with that id:{pk} does not exist.')})
+
+
+class GetSingleHotelAPIView(GenericAPIView):
+    serializer_class = HotelSerializer
+
+    def get(self, request, pk):
+        try:
+            hotel = Hotel.objects.get(id=pk)
+            serializer = self.serializer_class(hotel)
+            return Response(serializer.data)
+        except Hotel.DoesNotExist:
+            raise ValidationError({'success': False, 'message': _(f'Hotel with that id:{pk} does not exist.')})
