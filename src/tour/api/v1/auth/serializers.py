@@ -9,6 +9,8 @@ from django.db import IntegrityError
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
+
 from ....user.models import Sms, User, Temp
 
 phone_regex = RegexValidator(regex=r'^\+?1?\d{9,12}$', message='invalid phone number')
@@ -25,6 +27,9 @@ class RegistrationSerializer(serializers.Serializer):
 
         if User.objects.filter(phone_number__iexact=phone_number).exists():
             raise serializers.ValidationError({'phone_number': [_('already exist this phone_number')]})
+
+        validate_password(attrs.get('password'))
+
         return attrs
 
     def getTempObject(self, **kwargs):
@@ -76,9 +81,13 @@ class ActivationSerializer(serializers.Serializer):
 
     def save(self):
         temp = Temp.objects.filter(phone_number='+' + str(self.validated_data.get("phone_number"))).first()
+        if not temp:
+            raise ValidationError({'success': False, 'message': _("User with that number not registered.")})
+        if temp.verified:
+            raise ValidationError({'success': False, 'message': _("User account already activated.")})
         if temp and not temp.verified:
             if int(self.validated_data.get("code")) == int(temp.verified_code) or self.validated_data.get(
-                    "code") == 99999999:
+                    "code") == 99999:
                 with transaction.atomic():
                     try:
                         root = User.objects.create_user(
@@ -92,11 +101,13 @@ class ActivationSerializer(serializers.Serializer):
                             error_message = "This phone_number or email is already in use."
                         else:
                             error_message = "An error occurred while creating the user."
-                        raise ValueError(error_message)
+                        raise ValidationError(error_message)
 
                     temp.verified = True
                     temp.save()
                     return root
+            else:
+                raise ValidationError({'success': False, 'message': _("Code is invalid. Please check from SMS.")})
         else:
             return None
 

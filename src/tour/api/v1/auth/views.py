@@ -50,7 +50,6 @@ class RegistrationActivationView(GenericAPIView):
                 oauth2 = JSONOAuthLibCore(
                     Server(OAuth2FrontValidator()))
                 uri, headers, body, status_ = oauth2.create_token_response(request)
-
                 data = json.loads(body)
                 if status_ != 200:
                     raise ValidationError({'username': [data['error']]})
@@ -58,10 +57,9 @@ class RegistrationActivationView(GenericAPIView):
             else:
                 return Response({"detail": "invalid verification"}, status=status.HTTP_400_BAD_REQUEST)
 
-        except Exception as e:
+        except AttributeError as e:
             error = e
-            print(error)
-            return Response({"detail": 'Error occurred during activation. Contact support!'})
+            return Response({"detail": f'error:{error.args}'})
 
 
 class SignInView(GenericAPIView):
