@@ -99,7 +99,8 @@ class TourPackageSearchAPIView(GenericAPIView):
         if city and starting_date and ending_date:
             city = City.objects.filter(name=city)
             if city.exists():
-                duration_from, duration_to, activities, destinations, category, options = None, None, None, None, None, None
+                (duration_from, duration_to, price_min, price_max, activities, destinations, category, options) = (
+                    None, None, None, None, None, None, None, None)
                 if request.query_params.get('duration_from') and request.query_params.get('duration_to'):
                     duration_from = request.query_params.get('duration_from')
                     duration_to = request.query_params.get('duration_to')
@@ -132,6 +133,14 @@ class TourPackageSearchAPIView(GenericAPIView):
                     packages = filtered_packages
 
                 try:
+                    # filtering against the price of the tour
+                    if price_max and price_min:
+                        filtered_packages = []
+                        for package in packages:
+                            if price_max <= package.price <= price_min:
+                                filtered_packages.append(package)
+                        packages = filtered_packages
+
                     # filtering against the activities included in the tour
                     if activities:
                         filtered_packages = []

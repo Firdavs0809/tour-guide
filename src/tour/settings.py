@@ -31,11 +31,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
 
     "whitenoise.runserver_nostatic",
-    'django.contrib.staticfiles',
+    # 'django.contrib.staticfiles',
 
     # Third  party
     'corsheaders',
     'storages',
+    # 'django_elasticsearch_dsl',
 
     # Local apps
     'tour.user',

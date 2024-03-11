@@ -33,6 +33,7 @@ class RegistrationView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         code = serializer.save()
+        print(code.first_name)
         return Response({"activation_code": int(code.verified_code)}, status=status.HTTP_200_OK)
 
 
@@ -47,6 +48,11 @@ class RegistrationActivationView(GenericAPIView):
             root = serializer.save()
             if root:
                 request.data['username'] = root.phone_number
+                print(request.data)
+                # try:
+                #     request.data['username'] = root.phone_number
+                # except Exception:
+                #     raise ValidationError({'message':'Please enter the data in json format.'})
                 oauth2 = JSONOAuthLibCore(
                     Server(OAuth2FrontValidator()))
                 uri, headers, body, status_ = oauth2.create_token_response(request)

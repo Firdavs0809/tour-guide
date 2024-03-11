@@ -3,6 +3,7 @@ from rest_framework.generics import GenericAPIView, CreateAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+from rest_framework.utils import json
 
 from ....agency.models import TourPackage, Company, Options
 from ....agency.serializers import CompanySerializer
@@ -42,9 +43,14 @@ class AgencyRegistrationActivationAPIView(GenericAPIView):
     def check_user_activation(self, serializer):
         data = {
             'phone_number': serializer.validated_data['phone_number'],
-            'code': serializer.validated_data['code']
+            'code': serializer.validated_data['code'],
+            'client_id': self.request.data.get('client_id'),
+            'client_secret': self.request.data.get('client_secret'),
+            'grant_type': self.request.data.get('grant_type'),
+            'password':self.request.data.get('password')
         }
-        return requests.post(serializer.validated_data.pop('activation_url'), data=data).json()
+        return requests.post(serializer.validated_data.pop('activation_url'), data=json.dumps(data),
+                             headers={'Content-Type': 'application/json'})
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
@@ -52,8 +58,9 @@ class AgencyRegistrationActivationAPIView(GenericAPIView):
         serializer.validated_data['activation_url'] = request.build_absolute_uri(
             reverse('api:auth-register-activation'))
         response = self.check_user_activation(serializer)
-        serializer.save()
-        return Response({'detail': 'ok'})
+        if response.status_code == 200:
+            serializer.save()
+        return Response(response.json())
 
 
 class GetAgencyAPIView(GenericAPIView):

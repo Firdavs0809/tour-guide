@@ -109,6 +109,9 @@ class AgencyRegistrationActivationSerializer(serializers.Serializer):
                 else:
                     error_message = 'Error occurred during creation please contact support!'
                 raise ValidationError(error_message)
+            except User.DoesNotExist:
+                error_message = 'Company admin account not activated successfully!'
+                raise ValidationError(error_message)
 
             agency.is_waiting = True
             agency.save()
