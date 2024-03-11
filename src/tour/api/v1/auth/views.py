@@ -48,11 +48,10 @@ class RegistrationActivationView(GenericAPIView):
             root = serializer.save()
             if root:
                 request.data['username'] = root.phone_number
-                print(request.data)
-                # try:
-                #     request.data['username'] = root.phone_number
-                # except Exception:
-                #     raise ValidationError({'message':'Please enter the data in json format.'})
+                try:
+                    request.data['username'] = root.phone_number
+                except Exception:
+                    raise ValidationError({'message':'Please enter the data in json format.'})
                 oauth2 = JSONOAuthLibCore(
                     Server(OAuth2FrontValidator()))
                 uri, headers, body, status_ = oauth2.create_token_response(request)

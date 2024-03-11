@@ -1,5 +1,5 @@
 from rest_framework import status
-from rest_framework.generics import GenericAPIView, CreateAPIView
+from rest_framework.generics import GenericAPIView, CreateAPIView, ListAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -47,7 +47,7 @@ class AgencyRegistrationActivationAPIView(GenericAPIView):
             'client_id': self.request.data.get('client_id'),
             'client_secret': self.request.data.get('client_secret'),
             'grant_type': self.request.data.get('grant_type'),
-            'password':self.request.data.get('password')
+            'password': self.request.data.get('password')
         }
         return requests.post(serializer.validated_data.pop('activation_url'), data=json.dumps(data),
                              headers={'Content-Type': 'application/json'})
@@ -75,6 +75,12 @@ class GetAgencyAPIView(GenericAPIView):
             data['phone_number'] = agency.admin.phone_number
             return Response({"agency": data})
         return Response({'success': False, 'message': "Tour not Found"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetAgencyListAPIView(ListAPIView):
+    permission_classes = (AllowAny,)
+    serializer_class = CompanySerializer
+    queryset = Company.objects.all()
 
 
 class TourPackageCreateAPIView(CreateAPIView):
