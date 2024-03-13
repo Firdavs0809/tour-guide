@@ -17,7 +17,7 @@ phone_regex = RegexValidator(regex=r'^\+?1?\d{9,12}$', message='invalid phone nu
 
 
 class RegistrationSerializer(serializers.Serializer):
-    first_name = serializers.CharField(max_length=30, required=True)
+    first_name = serializers.CharField(max_length=30, required=False)
     phone_number = serializers.CharField(max_length=13, min_length=12, required=True, write_only=True,
                                          validators=[phone_regex])
     password = serializers.CharField(max_length=30, required=True)
@@ -67,7 +67,7 @@ class RegistrationSerializer(serializers.Serializer):
             temp = Temp(
                 password=self.validated_data.get("password"),
                 phone_number=self.validated_data.get("phone_number"),
-                first_name=self.validated_data.get("first_name"),
+                first_name=self.validated_data.get("first_name",None),
                 verified_code=sms_code
             )
             temp.save()

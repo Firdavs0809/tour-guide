@@ -9,13 +9,14 @@ from ....agency.models import TourPackage, Company, Options
 from ....agency.serializers import CompanySerializer
 from ....user.models import User
 import requests
-from .serializers import AgencyRegistrationSerializer, AgencyRegistrationActivationSerializer, TourPackageCreateSerializer, \
+from .serializers import AgencyRegistrationSerializer, AgencyRegistrationActivationSerializer, \
+    TourPackageCreateSerializer, \
     ChangeAgencyInfoSerializer
 from .custom_permissions import IsAdminIsOwnerOrReadOnly, IsAdminIsAuthenticated
 
 
 class AgencyRegisterAPIView(GenericAPIView):
-    permission_classes = [IsAdminIsAuthenticated, ]
+    permission_classes = [AllowAny, ]
     serializer_class = AgencyRegistrationSerializer
 
     def register_user(self, serializer):
@@ -39,7 +40,7 @@ class AgencyRegisterAPIView(GenericAPIView):
 
 class AgencyRegistrationActivationAPIView(GenericAPIView):
     serializer_class = AgencyRegistrationActivationSerializer
-    permission_classes = [IsAdminIsAuthenticated, ]
+    permission_classes = [AllowAny, ]
 
     def check_user_activation(self, serializer):
         data = {
@@ -61,7 +62,7 @@ class AgencyRegistrationActivationAPIView(GenericAPIView):
         response = self.check_user_activation(serializer)
         if response.status_code == 200:
             serializer.save()
-        return Response(response)
+        return Response(response.json())
 
 
 class GetAgencyAPIView(GenericAPIView):

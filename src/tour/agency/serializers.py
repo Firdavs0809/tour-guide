@@ -41,11 +41,13 @@ class PopularCitySerializer(serializers.ModelSerializer):
 
 
 class CompanySerializer(serializers.ModelSerializer):
+    name = serializers.CharField(required=False)
+    website = serializers.CharField(required=False)
+
     class Meta:
         model = Company
         exclude = ['id', 'total_rating', 'number_of_rating', 'admin', 'is_verified', 'is_bot_connected', 'is_waiting',
                    'chat_id']
-
 
 
 class HotelSerializer(serializers.ModelSerializer):
@@ -86,8 +88,10 @@ class TourPackageSerializer(serializers.ModelSerializer):
 class TourPackageSerializerList(serializers.ModelSerializer):
     class Meta:
         model = TourPackage
-        exclude = ['destinations', 'activities', 'hotels', 'language', 'is_expired',
-                   'is_featured', 'options', 'category', 'images']
+        fields = ['id', 'title', 'image', 'description', 'starting_date', 'ending_date', 'price', 'city_from',
+                  'city_to']
+        # exclude = ['destinations', 'activities', 'hotels', 'language', 'is_expired',
+        #            'is_featured', 'options', 'category', 'images', 'number_people']
 
 
 class ImageUploadSerializer(serializers.ModelSerializer):

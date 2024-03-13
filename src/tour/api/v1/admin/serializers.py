@@ -16,8 +16,6 @@ phone_regex = RegexValidator(regex=r'^\+?1?\d{9,12}$', message='invalid phone nu
 
 class AgencyRegistrationSerializer(serializers.Serializer):
     phone_number = serializers.CharField(required=True)
-    phone_number_2 = serializers.CharField(max_length=13, min_length=12, required=True, write_only=True,
-                                           validators=[phone_regex])
     password = serializers.CharField(max_length=30, required=True, write_only=True)
     name = serializers.CharField(max_length=56, required=True, )
     licence_number = serializers.CharField(required=True, max_length=12, )
@@ -25,6 +23,8 @@ class AgencyRegistrationSerializer(serializers.Serializer):
     address = serializers.CharField(required=True, max_length=95, )
     tg_username = serializers.CharField(required=True, max_length=32, min_length=5)
     website = serializers.CharField(max_length=200, required=False)
+    phone_number_2 = serializers.CharField(max_length=13, min_length=12, required=True, write_only=True,
+                                           validators=[phone_regex])
 
     def validate_address(self, address):
         return address
@@ -85,6 +85,11 @@ class AgencyRegistrationSerializer(serializers.Serializer):
 class AgencyRegistrationActivationSerializer(serializers.Serializer):
     phone_number = serializers.CharField()
     code = serializers.CharField()
+
+    password = serializers.CharField(required=True, write_only=True, min_length=4, max_length=30, )
+    grant_type = serializers.CharField(required=True, write_only=True)
+    client_id = serializers.CharField(min_length=10, required=True, write_only=True)
+    client_secret = serializers.CharField(required=True, write_only=True)
 
     def save(self, **kwargs):
         tmp = TempCompany.objects.filter(phone_number="+" + self.validated_data.get('phone_number').replace('+', ''),

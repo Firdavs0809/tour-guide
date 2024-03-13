@@ -1,19 +1,20 @@
 import json
+import uuid
 
-import requests
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from rest_framework.exceptions import ValidationError, Throttled
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView, get_object_or_404
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from oauthlib.oauth2 import Server
-from rest_framework.reverse import reverse
 
-from tour.user.models import User
+from tour.user.models import User, Temp
 
 from tour.oauth2.models import AccessToken, RefreshToken
+
+from tour.agency.utils import set_user_password_auto
 from .serializers import (SignInSerializer, RefreshTokenSerializer, LogoutSerializer,
                           RegistrationSerializer, ActivationSerializer, ForgetPasswordSerializer,
                           ResetPasswordSerializer, ConfirmPhoneNumberSerializer)
@@ -21,19 +22,24 @@ from tour.oauth2.oauth2_validators import OAuth2V1Validator, OAuth2FrontValidato
 from tour.oauth2.oauth2_backends import JSONOAuthLibCore
 
 
-# code for recaptcha goes here
-
-
 class RegistrationView(GenericAPIView):
     permission_classes = (AllowAny,)
     serializer_class = RegistrationSerializer
 
     def post(self, request, *args, **kwargs):
-        # Create a serializer with request.data
-        serializer = self.get_serializer(data=request.data)
+        data = request.data
+
+        # logic for user not auth required
+        if not data.get('password'):
+            client_id, client_secret, grant_type = set_user_password_auto()
+            password = uuid.uuid4()
+            data.update({'client_id': client_id, 'client_secret': client_secret, 'grant_type': grant_type,
+                         'password': str(password)[:30]})
+
+        # Create a serializer with data
+        serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         code = serializer.save()
-        print(code.first_name)
         return Response({"activation_code": int(code.verified_code)}, status=status.HTTP_200_OK)
 
 
@@ -42,7 +48,16 @@ class RegistrationActivationView(GenericAPIView):
     serializer_class = ActivationSerializer
 
     def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        data = request.data
+
+        # logic for user not auth required
+        if not data.get('client_id'):
+            client_id, client_secret, grant_type = set_user_password_auto()
+            data.update({'client_id': client_id, 'client_secret': client_secret, 'grant_type': grant_type,
+                         'password': get_object_or_404(Temp, phone_number=data.get('phone_number')).password})
+
+        # Create a serializer with data
+        serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         try:
             root = serializer.save()
@@ -51,7 +66,7 @@ class RegistrationActivationView(GenericAPIView):
                 try:
                     request.data['username'] = root.phone_number
                 except Exception:
-                    raise ValidationError({'message':'Please enter the data in json format.'})
+                    raise ValidationError({'message': 'Please enter the data in json format.'})
                 oauth2 = JSONOAuthLibCore(
                     Server(OAuth2FrontValidator()))
                 uri, headers, body, status_ = oauth2.create_token_response(request)

@@ -2,7 +2,7 @@ from django.urls import path
 from .views import TourPackageListAPIView, TourPackageDetailAPIView, TourPackageSearchAPIView, GetCityMatchAPIView, \
     ImageUploadView, ConfirmBookingAPIView, GetRelatedToursAPIView, GetFeaturedToursAPIView, GetFiltersAPIView, \
     GetPopularCityAPIView, GetCityFeaturesAPIView, ExcludeExpiredPackages, SetAgencyIdAPIView, CategoryListAPIView, \
-    OptoinsListAPIViewi, GetTourPackageCategoryAPIView, GetTourPackageOptionsAPIView, HotelsDetailAPIView, \
+    OptoinsListAPIView, GetTourPackageCategoryAPIView, GetTourPackageOptionsAPIView, HotelsDetailAPIView, \
     CategoryDetailAPIView, OptionsDetailAPIView,GetTourPackageHotelsAPIView
 
 urlpatterns = [
@@ -43,7 +43,7 @@ urlpatterns = [
     path('set-chat-id/', SetAgencyIdAPIView.as_view(), name='set-chat-id'),
 
     # needed for tour package creation gives the existing options and category
-    path('options/', OptoinsListAPIViewi.as_view(), name='get-options'),
+    path('options/', OptoinsListAPIView.as_view(), name='get-options'),
     path('category/', CategoryListAPIView.as_view(), name='get-categories'),
 
     # get option, category, hotel detail views

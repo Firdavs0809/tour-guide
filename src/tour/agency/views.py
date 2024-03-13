@@ -197,6 +197,7 @@ class TourPackageSearchAPIView(GenericAPIView):
                                 filtered_packages.append(package)
                         packages = filtered_packages
 
+                    # agency_list = [package.agency.chat_id for package in packages if package.agency.chat_id]
                     serializer = self.serializer_class(packages, many=True)
                     return Response(serializer.data)
                 except ValueError as e:
@@ -361,7 +362,7 @@ class SetAgencyIdAPIView(GenericAPIView):
         return Response({'detail': 'ok'})
 
 
-class OptoinsListAPIViewi(GenericAPIView):
+class OptoinsListAPIView(GenericAPIView):
     serializer_class = OptionsSerializer
     permission_classes = (AllowAny,)
     queryset = Options

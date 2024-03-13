@@ -1,5 +1,6 @@
-import threading
+from tour.oauth2.models import Application
 
+import threading
 from dotenv import load_dotenv
 import requests
 import os
@@ -81,3 +82,8 @@ class SendSMSThread(threading.Thread):
 def send_sms(phone_number, code):
     sms = SendSMSThread(phone_number, code)
     return sms.run()
+
+
+def set_user_password_auto():
+    application = Application.objects.all().last()
+    return application.client_id, application.client_secret, application.authorization_grant_type
