@@ -113,6 +113,11 @@ class TourPackageSearchAPIView(GenericAPIView):
                 if request.query_params.get('category'):
                     category = request.query_params.get('category')
 
+                if request.query_params.get('price_min'):
+                    price_min = request.query_params.get('price_min')
+                if request.query_params.get('price_max'):
+                    price_max = request.query_params.get('price_max')
+
                 temp_start = datetime.strptime(starting_date, '%Y-%m-%d').date()
                 temp_end = datetime.strptime(ending_date, '%Y-%m-%d').date()
 
@@ -137,12 +142,8 @@ class TourPackageSearchAPIView(GenericAPIView):
                     if price_max and price_min:
                         filtered_packages = []
                         for package in packages:
-                            try:
-                                if int(price_max) <= package.price <= int(price_min):
-                                    filtered_packages.append(package)
-                            except ValueError:
-                                raise ValidationError(
-                                    {'success': False, 'message': _('Price can not be non integer value. Try again.')})
+                            if float(price_max) >= package.price >= float(price_min):
+                                filtered_packages.append(package)
                         packages = filtered_packages
 
                     # filtering against the activities included in the tour
@@ -200,7 +201,7 @@ class TourPackageSearchAPIView(GenericAPIView):
                     return Response(serializer.data)
                 except ValueError as e:
                     raise ValidationError({'success': False, 'message': _(
-                        'You should send the ids of options,category. Non id value\'s been sent.')})
+                        'You should send the ids of options,category.Digital entrance for price.')})
                 except Exception as e:
                     print(e)
 
