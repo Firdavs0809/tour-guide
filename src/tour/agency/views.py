@@ -137,8 +137,12 @@ class TourPackageSearchAPIView(GenericAPIView):
                     if price_max and price_min:
                         filtered_packages = []
                         for package in packages:
-                            if price_max <= package.price <= price_min:
-                                filtered_packages.append(package)
+                            try:
+                                if int(price_max) <= package.price <= int(price_min):
+                                    filtered_packages.append(package)
+                            except ValueError:
+                                raise ValidationError(
+                                    {'success': False, 'message': _('Price can not be non integer value. Try again.')})
                         packages = filtered_packages
 
                     # filtering against the activities included in the tour

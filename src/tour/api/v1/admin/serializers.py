@@ -14,14 +14,14 @@ from tour.agency.utils import check_username_exists
 phone_regex = RegexValidator(regex=r'^\+?1?\d{9,12}$', message='invalid phone number')
 
 
-class AgencyRegisterSerializer(serializers.Serializer):
+class AgencyRegistrationSerializer(serializers.Serializer):
     phone_number = serializers.CharField(required=True)
     phone_number_2 = serializers.CharField(max_length=13, min_length=12, required=True, write_only=True,
                                            validators=[phone_regex])
     password = serializers.CharField(max_length=30, required=True, write_only=True)
     name = serializers.CharField(max_length=56, required=True, )
     licence_number = serializers.CharField(required=True, max_length=12, )
-    licence = serializers.CharField(max_length=255,required=True)
+    licence = serializers.CharField(max_length=255, required=True)
     address = serializers.CharField(required=True, max_length=95, )
     tg_username = serializers.CharField(required=True, max_length=32, min_length=5)
     website = serializers.CharField(max_length=200, required=False)
@@ -35,7 +35,7 @@ class AgencyRegisterSerializer(serializers.Serializer):
     def validate_tg_username(self, tg_username):
         if not check_username_exists(tg_username.replace('@', '')):
             message = _("Telegram username does not exist")
-            raise ValidationError({'detial': message})
+            raise ValidationError({'detail': message})
         return tg_username
 
     def save(self, **kwargs):
@@ -45,6 +45,7 @@ class AgencyRegisterSerializer(serializers.Serializer):
                 tmp = TempCompany.objects.create(
                     name=self.validated_data.get('name', None),
                     phone_number="+" + self.validated_data.get('phone_number', None).replace('+', ''),
+                    # phone_number=self.context.get('request').user.phone_number,
                     phone_number_2=self.validated_data.get('phone_number_2', None),
                     licence_number=self.validated_data.get('licence_number', None),
                     licence=self.validated_data.get('licence', None),
@@ -61,6 +62,7 @@ class AgencyRegisterSerializer(serializers.Serializer):
     def getTempObject(self, ):
         try:
             temp = TempCompany.objects.get(phone_number="+" + self.validated_data.get('phone_number').replace('+', ''))
+            # temp = TempCompany.objects.get(phone_number=self.context.get('request'))
             try:
                 temp.name = self.validated_data.get("name")
                 temp.phone_number_2 = self.validated_data.get("phone_number_2")
@@ -119,6 +121,12 @@ class AgencyRegistrationActivationSerializer(serializers.Serializer):
             tmp.save()
             return agency
         return None
+
+
+class ChangeAgencyInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Company
+        fields = "__all__"
 
 
 class TourPackageCreateSerializer(serializers.ModelSerializer):

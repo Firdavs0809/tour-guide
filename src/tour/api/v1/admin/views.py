@@ -1,5 +1,5 @@
 from rest_framework import status
-from rest_framework.generics import GenericAPIView, CreateAPIView, ListAPIView
+from rest_framework.generics import GenericAPIView, CreateAPIView, ListAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -9,13 +9,14 @@ from ....agency.models import TourPackage, Company, Options
 from ....agency.serializers import CompanySerializer
 from ....user.models import User
 import requests
-from .serializers import AgencyRegisterSerializer, AgencyRegistrationActivationSerializer, TourPackageCreateSerializer
+from .serializers import AgencyRegistrationSerializer, AgencyRegistrationActivationSerializer, TourPackageCreateSerializer, \
+    ChangeAgencyInfoSerializer
 from .custom_permissions import IsAdminIsOwnerOrReadOnly, IsAdminIsAuthenticated
 
 
 class AgencyRegisterAPIView(GenericAPIView):
-    permission_classes = [AllowAny, ]
-    serializer_class = AgencyRegisterSerializer
+    permission_classes = [IsAdminIsAuthenticated, ]
+    serializer_class = AgencyRegistrationSerializer
 
     def register_user(self, serializer):
         data = {
@@ -26,7 +27,7 @@ class AgencyRegisterAPIView(GenericAPIView):
         return requests.post(serializer.validated_data.pop('registration_url'), data=data).json()
 
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
+        serializer = self.serializer_class(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.validated_data['registration_url'] = request.build_absolute_uri(reverse('api:auth-registration'))
         response = self.register_user(serializer)
@@ -38,7 +39,7 @@ class AgencyRegisterAPIView(GenericAPIView):
 
 class AgencyRegistrationActivationAPIView(GenericAPIView):
     serializer_class = AgencyRegistrationActivationSerializer
-    permission_classes = [AllowAny, ]
+    permission_classes = [IsAdminIsAuthenticated, ]
 
     def check_user_activation(self, serializer):
         data = {
@@ -60,7 +61,7 @@ class AgencyRegistrationActivationAPIView(GenericAPIView):
         response = self.check_user_activation(serializer)
         if response.status_code == 200:
             serializer.save()
-        return Response(response.json())
+        return Response(response)
 
 
 class GetAgencyAPIView(GenericAPIView):
@@ -77,10 +78,37 @@ class GetAgencyAPIView(GenericAPIView):
         return Response({'success': False, 'message': "Tour not Found"}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class GetAgencyListAPIView(ListAPIView):
-    permission_classes = (AllowAny,)
+class AgencyRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+    permission_classes = (IsAdminIsOwnerOrReadOnly,)
     serializer_class = CompanySerializer
     queryset = Company.objects.all()
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.serializer_class(instance)
+        return Response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
+
+
+# class ChangeAgencyInfoAPIView(GenericAPIView):
+#     serializer_class = AgencySerializer
+#     permission_classes = (AllowAny,)
+#
+#     def put(self, reqeust):
+#         super().pu
+#
+#     def patch(self, request):
+#         pass
 
 
 class TourPackageCreateAPIView(CreateAPIView):
