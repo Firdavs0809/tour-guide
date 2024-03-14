@@ -3,7 +3,7 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 
 from .serializers import ProfileSerializer
-from ..agency.serializers import TourPackageSerializer,TourPackageSerializerList
+from ..agency.serializers import TourPackageSerializer, TourPackageSerializerList
 
 
 class ProfilePageAPIView(GenericAPIView):
@@ -13,7 +13,7 @@ class ProfilePageAPIView(GenericAPIView):
         user = request.user
         profile = user.profile
         serializer = self.serializer_class(instance=profile)
-        return Response({'user':serializer.data,})
+        return Response({'user': serializer.data, })
 
     def put(self, request):
         profile = request.user.profile
@@ -36,4 +36,4 @@ class GetProfileTickets(GenericAPIView):
             starting_date__gte=timezone.now()
         )
         serializer = self.serializer_class(instance=packages, many=True)
-        return Response({"count":len(packages),"tickets": serializer.data})
+        return Response({"count": len(packages), "tickets": serializer.data})

@@ -191,7 +191,7 @@ class AccessToken(models.Model):
             return True
 
         # just dummy scope
-        self.scope='* user admin'
+        self.scope = '* user admin'
         self.save()
 
         provided_scopes = set(self.scope.split())
@@ -233,8 +233,18 @@ class RefreshToken(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    expires = models.DateTimeField()
+
+    def is_expired(self):
+        if not self.expires:
+            return True
+        return timezone.now() >= self.expires
+
+    def is_valid(self, scopes=None):
+        return not self.is_expired()
+
     def revoke(self):
-        # AccessToken.objects.get(id=self.access_token.id).revoke()
+        AccessToken.objects.get(id=self.access_token.id).revoke()
         self.delete()
 
     def __str__(self):

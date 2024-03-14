@@ -15,6 +15,8 @@ from django.utils import timezone
 from django.utils.timezone import make_aware
 from oauthlib.oauth2 import RequestValidator
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
+
 from .compat import unquote_plus
 from .exceptions import FatalClientError
 from .models import (
@@ -271,7 +273,7 @@ class OAuth2Validator(RequestValidator):
                 user = None
 
             max_caching_time = datetime.now() + timedelta(
-                seconds=604800
+                days=30
             )
 
             if "exp" in content:
@@ -420,7 +422,7 @@ class OAuth2Validator(RequestValidator):
         if "scope" not in token:
             raise FatalClientError("Failed to renew access token: missing scope")
 
-        expires = timezone.now() + timedelta(seconds=604800)
+        expires = timezone.now() + timedelta(days=30)
 
         if request.grant_type == "client_credentials":
             request.user = None
@@ -479,7 +481,8 @@ class OAuth2Validator(RequestValidator):
                     user=request.user,
                     token=refresh_token_code,
                     application=request.client,
-                    access_token=access_token
+                    access_token=access_token,
+                    expires=timezone.now() + timedelta(days=365)
                 )
                 refresh_token.save()
 
@@ -488,7 +491,7 @@ class OAuth2Validator(RequestValidator):
             self._create_access_token(expires, request, token)
 
         # TODO: check out a more reliable way to communicate expire time to oauthlib
-        token["expires_in"] = 604800
+        token["expires_in"] = str(timezone.now() + timedelta(days=30))
 
     def _create_access_token(self, expires, request, token):
         access_token = AccessToken(
@@ -553,6 +556,10 @@ class OAuth2Validator(RequestValidator):
             # Temporary store RefreshToken instance to be reused by get_original_scopes.
             request.refresh_token_instance = rt
             return rt.application == client
+            # if rt.is_valid():
+            # else:
+            #     raise ValidationError(
+            #         {'message': 'Refresh Token expired. You should confirm your phone number and get new one!'})
 
         except RefreshToken.DoesNotExist:
             return False

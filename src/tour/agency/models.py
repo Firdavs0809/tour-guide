@@ -24,7 +24,7 @@ class TempCompany(models.Model):
     phone_number_2 = models.CharField(max_length=30, null=True, blank=True, unique=True)
     phone_number = models.CharField(max_length=30, null=True, blank=True)
     licence_number = models.CharField(max_length=12, null=False, blank=False, unique=True)
-    licence = models.CharField(max_length=255,null=True,blank=True)
+    licence = models.CharField(max_length=255, null=True, blank=True)
     address = models.CharField(max_length=95, null=False, blank=False)
     tg_username = models.CharField(max_length=200, null=True, blank=True)
     website = models.CharField(max_length=200, null=True, blank=True)
@@ -42,7 +42,7 @@ class Company(models.Model):
     name = models.CharField(max_length=200, blank=False, null=False, )
     phone_number_2 = models.CharField(max_length=30, null=True, blank=True, unique=True)
     licence_number = models.CharField(max_length=12, null=False, blank=False, unique=True, default='l34-3d3-3')
-    licence = models.CharField(max_length=255,null=True,blank=True)
+    licence = models.CharField(max_length=255, null=True, blank=True)
     address = models.CharField(max_length=95, null=False, blank=False, default='Uzbekistan')
 
     logo = models.CharField(default="default-agency-image.png")

@@ -8,7 +8,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -53,7 +52,8 @@ class Migration(migrations.Migration):
                 ('address', models.CharField(default='Uzbekistan', max_length=95)),
                 ('logo', models.CharField(default='default-agency-image.png')),
                 ('website', models.CharField(max_length=200)),
-                ('average_rating', models.DecimalField(blank=True, decimal_places=1, editable=False, max_digits=3, null=True)),
+                ('average_rating',
+                 models.DecimalField(blank=True, decimal_places=1, editable=False, max_digits=3, null=True)),
                 ('total_rating', models.IntegerField(default=0, editable=False)),
                 ('number_of_rating', models.IntegerField(default=0, editable=False)),
                 ('tg_username', models.CharField(blank=True, max_length=200, null=True)),
@@ -61,7 +61,9 @@ class Migration(migrations.Migration):
                 ('is_bot_connected', models.BooleanField(default=False)),
                 ('is_verified', models.BooleanField(default=False)),
                 ('is_waiting', models.BooleanField(default=True)),
-                ('admin', models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='agency', to=settings.AUTH_USER_MODEL)),
+                ('admin',
+                 models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='agency',
+                                      to=settings.AUTH_USER_MODEL)),
             ],
         ),
         migrations.CreateModel(
@@ -96,7 +98,9 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(blank=True, max_length=200, null=True)),
-                ('stars', models.IntegerField(blank=True, null=True, validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(5)])),
+                ('stars', models.IntegerField(blank=True, null=True,
+                                              validators=[django.core.validators.MinValueValidator(1),
+                                                          django.core.validators.MaxValueValidator(5)])),
                 ('link', models.CharField(blank=True, max_length=250, null=True)),
             ],
             options={
@@ -145,21 +149,29 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('title', models.CharField(blank=True, max_length=200, null=True)),
                 ('image', models.CharField(blank=True, null=True)),
-                ('images', django.contrib.postgres.fields.ArrayField(base_field=models.URLField(blank=True, null=True), blank=True, null=True, size=10)),
+                ('images', django.contrib.postgres.fields.ArrayField(base_field=models.URLField(blank=True, null=True),
+                                                                     blank=True, null=True, size=10)),
                 ('description', models.TextField(blank=True, null=True)),
                 ('starting_date', models.DateField()),
                 ('ending_date', models.DateField()),
                 ('airport_from', models.CharField(blank=True, max_length=100, null=True)),
                 ('airport_to', models.CharField(blank=True, max_length=100, null=True)),
-                ('number_people', models.IntegerField(default=1, validators=[django.core.validators.MinValueValidator(1)])),
-                ('price', models.DecimalField(blank=True, decimal_places=2, max_digits=8, null=True, validators=[django.core.validators.MinValueValidator(0)])),
+                ('number_people',
+                 models.IntegerField(default=1, validators=[django.core.validators.MinValueValidator(1)])),
+                ('price', models.DecimalField(blank=True, decimal_places=2, max_digits=8, null=True,
+                                              validators=[django.core.validators.MinValueValidator(0)])),
                 ('is_expired', models.BooleanField(default=False)),
                 ('is_featured', models.BooleanField(default=False)),
                 ('activities', models.ManyToManyField(blank=True, to='agency.activity')),
-                ('agency', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='packages', to='agency.company')),
+                ('agency', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='packages',
+                                             to='agency.company')),
                 ('category', models.ManyToManyField(blank=True, to='agency.category')),
-                ('city_from', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='cities_from', to='agency.city')),
-                ('city_to', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='cities_to', to='agency.city')),
+                ('city_from',
+                 models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='cities_from',
+                                   to='agency.city')),
+                ('city_to',
+                 models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='cities_to',
+                                   to='agency.city')),
                 ('destinations', models.ManyToManyField(blank=True, to='agency.destination')),
                 ('hotels', models.ManyToManyField(blank=True, to='agency.hotel')),
                 ('language', models.ManyToManyField(blank=True, related_name='packages', to='agency.language')),
@@ -172,7 +184,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='city',
             name='country',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='cities', to='agency.country'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL,
+                                    related_name='cities', to='agency.country'),
         ),
         migrations.AddField(
             model_name='city',
@@ -185,7 +198,8 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('comment', models.TextField(blank=True, null=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True, null=True)),
-                ('package', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='agency.tourpackage')),
+                ('package',
+                 models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='agency.tourpackage')),
             ],
             options={
                 'verbose_name': 'booking',

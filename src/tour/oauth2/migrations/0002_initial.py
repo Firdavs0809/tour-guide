@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -18,17 +17,20 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='accesstoken',
             name='user',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='%(app_label)s_%(class)s', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE,
+                                    related_name='%(app_label)s_%(class)s', to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
             model_name='application',
             name='user',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='%(app_label)s_%(class)s', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE,
+                                    related_name='%(app_label)s_%(class)s', to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
             model_name='accesstoken',
             name='application',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='oauth2.application'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE,
+                                    to='oauth2.application'),
         ),
         migrations.AddField(
             model_name='grant',
@@ -38,12 +40,14 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='grant',
             name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='%(app_label)s_%(class)s', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='%(app_label)s_%(class)s',
+                                    to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
             model_name='refreshtoken',
             name='access_token',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='refresh_token', to='oauth2.accesstoken'),
+            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='refresh_token',
+                                       to='oauth2.accesstoken'),
         ),
         migrations.AddField(
             model_name='refreshtoken',
@@ -53,6 +57,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='refreshtoken',
             name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='%(app_label)s_%(class)s', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='%(app_label)s_%(class)s',
+                                    to=settings.AUTH_USER_MODEL),
         ),
     ]

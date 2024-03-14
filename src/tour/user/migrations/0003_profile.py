@@ -6,7 +6,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('agency', '0001_initial'),
         ('user', '0002_temp_sms'),
@@ -25,7 +24,8 @@ class Migration(migrations.Migration):
                 ('date_of_birth', models.DateField(blank=True, null=True)),
                 ('location', models.CharField(blank=True, max_length=200, null=True)),
                 ('packages', models.ManyToManyField(blank=True, to='agency.tourpackage')),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='profile', to=settings.AUTH_USER_MODEL)),
+                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='profile',
+                                              to=settings.AUTH_USER_MODEL)),
             ],
             options={
                 'verbose_name': 'profile',

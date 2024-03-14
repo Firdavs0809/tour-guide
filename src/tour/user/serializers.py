@@ -10,7 +10,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        exclude = ['packages','user']
+        exclude = ['packages', 'user']
 
     def update(self, instance, validated_data):
         instance = super().update(instance=instance, validated_data=validated_data)

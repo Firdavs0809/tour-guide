@@ -6,7 +6,6 @@ from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.utils.encoding import force_str
 
-
 from .compat import urlsplit, urlunsplit
 
 

@@ -14,6 +14,7 @@ class OAuthLibCore(object):
     """
     TODO: add docs
     """
+
     def __init__(self, server=None):
         self.server = server or oauth2.Server(OAuth2Validator())
 
@@ -171,6 +172,7 @@ class JSONOAuthLibCore(OAuthLibCore):
     """
     Extends the default OAuthLibCore to parse correctly application/json requests
     """
+
     def extract_body(self, request):
         try:
             body = json.loads(json.dumps(request.data)).items()

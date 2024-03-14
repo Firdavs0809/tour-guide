@@ -14,7 +14,7 @@ from tour.user.models import User, Temp
 
 from tour.oauth2.models import AccessToken, RefreshToken
 
-from tour.agency.utils import set_user_password_auto
+from tour.agency.utils import set_default_application
 from .serializers import (SignInSerializer, RefreshTokenSerializer, LogoutSerializer,
                           RegistrationSerializer, ActivationSerializer, ForgetPasswordSerializer,
                           ResetPasswordSerializer, ConfirmPhoneNumberSerializer)
@@ -31,10 +31,8 @@ class RegistrationView(GenericAPIView):
 
         # logic for user not auth required
         if not data.get('password'):
-            client_id, client_secret, grant_type = set_user_password_auto()
             password = uuid.uuid4()
-            data.update({'client_id': client_id, 'client_secret': client_secret, 'grant_type': grant_type,
-                         'password': str(password)[:30]})
+            data.update(password=str(password)[:30])
 
         # Create a serializer with data
         serializer = self.get_serializer(data=data)
@@ -50,23 +48,22 @@ class RegistrationActivationView(GenericAPIView):
     def post(self, request, *args, **kwargs):
         data = request.data
 
-        # logic for user not auth required
-        if not data.get('client_id'):
-            client_id, client_secret, grant_type = set_user_password_auto()
-            data.update({'client_id': client_id, 'client_secret': client_secret, 'grant_type': grant_type,
-                         'password': get_object_or_404(Temp, phone_number=data.get('phone_number')).password})
-
         # Create a serializer with data
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         try:
             root = serializer.save()
             if root:
-                request.data['username'] = root.phone_number
-                try:
-                    request.data['username'] = root.phone_number
-                except Exception:
-                    raise ValidationError({'message': 'Please enter the data in json format.'})
+
+                # logic for user not auth required
+                if not request.data.get('client_id'):
+                    client_id, client_secret, grant_type = set_default_application()
+                    temp = get_object_or_404(Temp, phone_number=data.get('phone_number'))
+                    request.data.update(
+                        {'client_id': client_id, 'client_secret': client_secret, 'grant_type': grant_type,
+                         'password': temp.password, 'username': temp.phone_number})
+
+                # generating access_token and refresh_token
                 oauth2 = JSONOAuthLibCore(
                     Server(OAuth2FrontValidator()))
                 uri, headers, body, status_ = oauth2.create_token_response(request)
@@ -176,7 +173,7 @@ class ConfirmPhoneNumberAPIView(GenericAPIView):
         if refresh_token:
             access_token = refresh_token.access_token
             if access_token.is_expired():
-                access_token.expires = timezone.now() + timezone.timedelta(seconds=604800)
+                access_token.expires = timezone.now() + timezone.timedelta(days=30)
                 access_token.save()
             return Response({'detail': 'Ok', 'access_token': access_token.token}, status=status.HTTP_200_OK)
         raise ValidationError({'success': False, 'message': _('User with that phone number not exists.')})

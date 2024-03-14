@@ -3,7 +3,7 @@ from .views import TourPackageListAPIView, TourPackageDetailAPIView, TourPackage
     ImageUploadView, ConfirmBookingAPIView, GetRelatedToursAPIView, GetFeaturedToursAPIView, GetFiltersAPIView, \
     GetPopularCityAPIView, GetCityFeaturesAPIView, ExcludeExpiredPackages, SetAgencyIdAPIView, CategoryListAPIView, \
     OptoinsListAPIView, GetTourPackageCategoryAPIView, GetTourPackageOptionsAPIView, HotelsDetailAPIView, \
-    CategoryDetailAPIView, OptionsDetailAPIView,GetTourPackageHotelsAPIView
+    CategoryDetailAPIView, OptionsDetailAPIView, GetTourPackageHotelsAPIView
 
 urlpatterns = [
     # gives the top package to a city(default)

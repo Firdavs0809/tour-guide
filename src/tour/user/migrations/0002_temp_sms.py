@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('user', '0001_initial'),
     ]
@@ -41,7 +40,8 @@ class Migration(migrations.Migration):
                 ('is_active', models.BooleanField(blank=True, default=False)),
                 ('expires', models.DateTimeField()),
                 ('created_datetime', models.DateTimeField(auto_now_add=True, null=True)),
-                ('temp', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='user_sms', to='user.temp')),
+                ('temp', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL,
+                                           related_name='user_sms', to='user.temp')),
             ],
             options={
                 'verbose_name': 'User sms',

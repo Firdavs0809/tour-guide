@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .views import AgencyRegisterAPIView, AgencyRegistrationActivationAPIView, TourPackageCreateAPIView, \
-    GetAgencyAPIView,AgencyRetrieveUpdateDestroyAPIView
+    GetAgencyAPIView, AgencyRetrieveUpdateDestroyAPIView
 from tour.api.v1.auth.views import SignInView
 
 urlpatterns = [

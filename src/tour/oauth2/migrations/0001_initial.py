@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -32,11 +31,20 @@ class Migration(migrations.Migration):
             name='Application',
             fields=[
                 ('id', models.BigAutoField(primary_key=True, serialize=False)),
-                ('client_id', models.CharField(db_index=True, default=tour.oauth2.generators.generate_client_id, max_length=100, unique=True)),
-                ('redirect_uris', models.TextField(blank=True, help_text='Allowed URIs list, space separated', validators=[tour.oauth2.validators.validate_uris])),
-                ('client_type', models.CharField(choices=[('confidential', 'Confidential'), ('public', 'Public')], max_length=32)),
-                ('authorization_grant_type', models.CharField(choices=[('authorization-code', 'Authorization code'), ('implicit', 'Implicit'), ('password', 'Resource owner password-based'), ('client-credentials', 'Client credentials')], max_length=32)),
-                ('client_secret', models.CharField(blank=True, db_index=True, default=tour.oauth2.generators.generate_client_secret, max_length=255)),
+                ('client_id',
+                 models.CharField(db_index=True, default=tour.oauth2.generators.generate_client_id, max_length=100,
+                                  unique=True)),
+                ('redirect_uris', models.TextField(blank=True, help_text='Allowed URIs list, space separated',
+                                                   validators=[tour.oauth2.validators.validate_uris])),
+                ('client_type',
+                 models.CharField(choices=[('confidential', 'Confidential'), ('public', 'Public')], max_length=32)),
+                ('authorization_grant_type', models.CharField(
+                    choices=[('authorization-code', 'Authorization code'), ('implicit', 'Implicit'),
+                             ('password', 'Resource owner password-based'),
+                             ('client-credentials', 'Client credentials')], max_length=32)),
+                ('client_secret',
+                 models.CharField(blank=True, db_index=True, default=tour.oauth2.generators.generate_client_secret,
+                                  max_length=255)),
                 ('name', models.CharField(blank=True, max_length=255)),
                 ('skip_authorization', models.BooleanField(default=False)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),

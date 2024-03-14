@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('oauth2', '0003_alter_accesstoken_scope'),
     ]

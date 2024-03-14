@@ -25,10 +25,10 @@ class RegistrationSerializer(serializers.Serializer):
     def validate(self, attrs):
         phone_number = attrs.get('phone_number', '1')
 
-        if User.objects.filter(phone_number__iexact=phone_number).exists():
-            raise serializers.ValidationError({'phone_number': [_('already exist this phone_number')]})
+        # if User.objects.filter(phone_number__iexact=phone_number).exists():
+        #     raise serializers.ValidationError({'phone_number': [_('already exist this phone_number')]})
 
-        validate_password(attrs.get('password'))
+        # validate_password(attrs.get('password'))
 
         return attrs
 
@@ -37,6 +37,7 @@ class RegistrationSerializer(serializers.Serializer):
             temp = Temp.objects.get(phone_number=self.validated_data.get("phone_number"))
             temp.password = kwargs["password"]
             temp.verified_code = kwargs["sms_code"]
+            temp.verified = False
             temp.save()
             return temp
         except Exception as e:
@@ -67,7 +68,7 @@ class RegistrationSerializer(serializers.Serializer):
             temp = Temp(
                 password=self.validated_data.get("password"),
                 phone_number=self.validated_data.get("phone_number"),
-                first_name=self.validated_data.get("first_name",None),
+                first_name=self.validated_data.get("first_name", None),
                 verified_code=sms_code
             )
             temp.save()
@@ -90,13 +91,15 @@ class ActivationSerializer(serializers.Serializer):
                     "code") == 99999:
                 with transaction.atomic():
                     try:
-                        root = User.objects.create_user(
-                            first_name=temp.first_name,
-                            phone_number=temp.phone_number,
-                            password=temp.password
+                        (root, created) = User.objects.get_or_create(
+                            phone_number=temp.phone_number
                         )
+                        if created:
+                            root.first_name = temp.first_name
+                        root.set_password(temp.password)
                         root.save()
                     except IntegrityError as e:
+                        print(e)
                         if 'UNIQUE constraint' in str(e):
                             error_message = "This phone_number or email is already in use."
                         else:
