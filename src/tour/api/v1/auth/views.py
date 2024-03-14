@@ -32,7 +32,10 @@ class RegistrationView(GenericAPIView):
         # logic for user not auth required
         if not data.get('password'):
             password = uuid.uuid4()
-            data.update(password=str(password)[:30])
+            try:
+                data.update(password=str(password)[:30])
+            except AttributeError:
+                raise ValidationError({'success': False, 'message': _('Only json format is accepted.')})
 
         # Create a serializer with data
         serializer = self.get_serializer(data=data)
@@ -59,9 +62,13 @@ class RegistrationActivationView(GenericAPIView):
                 if not request.data.get('client_id'):
                     client_id, client_secret, grant_type = set_default_application()
                     temp = get_object_or_404(Temp, phone_number=data.get('phone_number'))
-                    request.data.update(
-                        {'client_id': client_id, 'client_secret': client_secret, 'grant_type': grant_type,
-                         'password': temp.password, 'username': temp.phone_number})
+
+                    try:
+                        request.data.update(
+                            {'client_id': client_id, 'client_secret': client_secret, 'grant_type': grant_type,
+                             'password': temp.password, 'username': temp.phone_number})
+                    except AttributeError:
+                        raise ValidationError({'success': False, 'message': _('Only json format is accepted.')})
 
                 # generating access_token and refresh_token
                 oauth2 = JSONOAuthLibCore(
