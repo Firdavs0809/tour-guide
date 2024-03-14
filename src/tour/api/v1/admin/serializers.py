@@ -1,3 +1,4 @@
+from django.contrib.auth.password_validation import validate_password
 from django.core.validators import RegexValidator
 from django.db import transaction, IntegrityError
 from django.utils import timezone
@@ -25,6 +26,14 @@ class AgencyRegistrationSerializer(serializers.Serializer):
     website = serializers.CharField(max_length=200, required=False)
     phone_number_2 = serializers.CharField(max_length=13, min_length=12, required=True, write_only=True,
                                            validators=[phone_regex])
+
+    def validate(self, attrs):
+
+        if User.objects.filter(phone_number__iexact=attrs.get('phone_number')).exists():
+            raise serializers.ValidationError({'phone_number': [_('already exist this phone_number')]})
+
+        validate_password(attrs.get('password'))
+        return attrs
 
     def validate_address(self, address):
         return address

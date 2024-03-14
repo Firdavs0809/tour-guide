@@ -24,12 +24,6 @@ class RegistrationSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         phone_number = attrs.get('phone_number', '1')
-
-        # if User.objects.filter(phone_number__iexact=phone_number).exists():
-        #     raise serializers.ValidationError({'phone_number': [_('already exist this phone_number')]})
-
-        # validate_password(attrs.get('password'))
-
         return attrs
 
     def getTempObject(self, **kwargs):
