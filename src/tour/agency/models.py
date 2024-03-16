@@ -82,10 +82,12 @@ class Country(models.Model):
 
 
 class City(models.Model):
-    name = models.CharField(max_length=200, )
+    name = models.CharField(max_length=200, db_index=True)
     is_popular = models.BooleanField(default=False)
     features = models.ManyToManyField("Feature", )
     country = models.ForeignKey(Country, related_name='cities', blank=True, null=True, on_delete=models.SET_NULL)
+    lat=models.DecimalField(max_digits=10,decimal_places=4,null=True,blank=True)
+    lng=models.DecimalField(max_digits=10,decimal_places=4,null=True,blank=True)
 
     def __str__(self):
         return self.name

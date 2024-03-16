@@ -137,10 +137,16 @@ class AgencyRegistrationActivationSerializer(serializers.Serializer):
         return None
 
 
-class ChangeAgencyInfoSerializer(serializers.ModelSerializer):
+class CompanyListSerializer(serializers.ModelSerializer):
+    phone_number = serializers.SerializerMethodField()
+
+    def get_phone_number(self, obj):
+        return obj.admin.phone_number
+
     class Meta:
         model = Company
-        fields = "__all__"
+        fields = ['id', 'name', 'website', 'address', 'phone_number', 'licence_number']
+        read_only_fields = fields
 
 
 class TourPackageCreateSerializer(serializers.ModelSerializer):
@@ -158,20 +164,22 @@ class TourPackageCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TourPackage
-        exclude = ['id', 'is_expired', 'is_featured', 'image', 'language']
+        exclude = ['id', 'is_expired', 'is_featured', 'image', 'language', 'agency']
 
     def validate(self, attrs):
+        message = None
         if attrs.get('ending_date') <= attrs.get("starting_date"):
-            raise ValidationError({'success': False, 'message': _(
-                "Invalid date interval for tour. Please check the starting and ending date you entered.")})
+            message = _("Invalid date interval for tour. Please check the starting and ending date you entered.")
+        package = TourPackage.objects.filter(title=attrs.get('title'), )
+        if package.exists():
+            message = _("Tour already registered. If you want to edit it . Go to the edit page.")
+        if message:
+            raise ValidationError({'success': False, 'message': message})
         return attrs
 
     def validate_title(self, title):
         message = None
-        package = TourPackage.objects.filter(title=title)
-        if package.exists():
-            message = _("Tour already registered. If you want to edit it . Go to the edit page.")
-        elif len(title) < 5:
+        if len(title) < 5:
             message = _("Invalid title. Consider giving a descriptive name for the Tour.")
         if message:
             raise ValidationError({'success': False, 'message': message})

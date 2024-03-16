@@ -1,9 +1,10 @@
 from django.urls import path
 from .views import TourPackageListAPIView, TourPackageDetailAPIView, TourPackageSearchAPIView, GetCityMatchAPIView, \
-    ImageUploadView, ConfirmBookingAPIView, GetRelatedToursAPIView, GetFeaturedToursAPIView, GetFiltersAPIView, \
-    GetPopularCityAPIView, GetCityFeaturesAPIView, ExcludeExpiredPackages, SetAgencyIdAPIView, CategoryListAPIView, \
-    OptoinsListAPIView, GetTourPackageCategoryAPIView, GetTourPackageOptionsAPIView, HotelsDetailAPIView, \
-    CategoryDetailAPIView, OptionsDetailAPIView, GetTourPackageHotelsAPIView
+    ImageUploadView, ConfirmBookingAPIView, GetRelatedToursCityAPIView, GetRelatedToursPeriodAPIView, \
+    GetFeaturedToursAPIView, GetFiltersAPIView, GetPopularCityAPIView, GetCityFeaturesAPIView, ExcludeExpiredPackages, \
+    SetAgencyIdAPIView, CategoryListAPIView, OptoinsListAPIView, GetTourPackageCategoryAPIView, \
+    GetTourPackageOptionsAPIView, HotelsDetailAPIView, CategoryDetailAPIView, OptionsDetailAPIView, \
+    GetTourPackageHotelsAPIView
 
 urlpatterns = [
     # gives the top package to a city(default)
@@ -20,7 +21,9 @@ urlpatterns = [
     path('packages/<int:pk>/confirm-booking/', ConfirmBookingAPIView.as_view(), name='confirm-booking'),
 
     # get related tours in the detail view
-    path('packages/<int:pk>/related-tours/', GetRelatedToursAPIView.as_view(), name='get-related-tours'),
+    path('packages/<int:pk>/related-tours/city/', GetRelatedToursCityAPIView.as_view(), name='related-tours-city'),
+    path('packages/<int:pk>/related-tours/period/', GetRelatedToursPeriodAPIView.as_view(),
+         name='related-tours-period'),
 
     # get package category and options
     path('packages/<int:pk>/category/', GetTourPackageCategoryAPIView.as_view(), name='get-tour-category'),

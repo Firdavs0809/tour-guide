@@ -12,18 +12,24 @@ class IsAdminIsOwnerOrReadOnly(BasePermission):
 
     def has_object_permission(self, request, view, obj):
         user = request.user
-        return obj.admin == user or user.is_staff or request.method in permissions.SAFE_METHODS
+        return (obj.admin == user and user.is_staff) or user.is_superuser
 
 
-class IsAdminIsAuthenticated(BasePermission):
+class IsAdminIsAuthenticatedIsTourOwner(BasePermission):
 
     def has_permission(self, request, view):
         user = request.user
         # if user and user.is_authenticated and user.is_staff:
-        if user and user.is_authenticated:
+        if user and user.is_authenticated and user.is_staff and user.is_active:
             return True
         return False
 
     def has_object_permission(self, request, view, obj):
         user = request.user
-        return obj.author == user and user.is_staff
+        return obj.agency.admin == user and user.is_staff
+
+
+class IsSuperUser(BasePermission):
+
+    def has_permission(self, request, view):
+        return request.user.is_superuser

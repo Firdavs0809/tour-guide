@@ -1,4 +1,6 @@
 from datetime import timedelta, datetime
+
+import pandas
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -10,7 +12,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from .models import TourPackage, Company, Booking, Hotel
 from .serializers import TourPackageSerializer, ImageUploadSerializer, TourPackageSerializerList
-from .models import City, Options, Category
+from .models import City, Options, Category, Country
 from .serializers import ConfirmBookingSerializer, CompanySerializer, FeatureSerializer, PopularCitySerializer, \
     OptionsSerializer, CategorySerializer, HotelSerializer, DestinationSerializer, ActivitySerializer
 from .utils import send_message
@@ -31,7 +33,8 @@ class TourPackageListAPIView(ListAPIView):
     serializer_class = TourPackageSerializerList
     permission_classes = (AllowAny,)
 
-    # pagination_class = CustomPagination
+    pagination_class = CustomPagination
+
     # filter_backends = [filters.SearchFilter]
     # search_fields = ['title', 'city_to__name', ]
 
@@ -53,31 +56,56 @@ class TourPackageDetailAPIView(RetrieveAPIView):
         return Response(data)
 
 
-class GetRelatedToursAPIView(GenericAPIView):
+class GetRelatedToursCityAPIView(GenericAPIView):
     serializer_class = TourPackageSerializerList
     permission_classes = (AllowAny,)
+    pagination_class = CustomPagination
 
     def get(self, request, pk):
         obj = get_object_or_404(TourPackage, id=pk)
-        serializer_related_city = self.serializer_class(TourPackage.objects.filter(
-            Q(city_to=obj.city_to, is_expired=False) & ~Q(id=obj.id)), many=True).data
-        serializer_related_period = self.serializer_class(TourPackage.objects.filter(
+        packages = TourPackage.objects.filter(Q(city_to=obj.city_to, is_expired=False) & ~Q(id=obj.id))
+
+        pagination = self.pagination_class()
+        packages = pagination.paginate_queryset(queryset=packages, request=request, view=self)
+
+        serializer_related_city = self.serializer_class(packages, many=True).data
+        return Response(pagination.get_paginated_response(serializer_related_city).data)
+
+
+class GetRelatedToursPeriodAPIView(GenericAPIView):
+    serializer_class = TourPackageSerializerList
+    permission_classes = (AllowAny,)
+    pagination_class = CustomPagination
+
+    def get(self, request, pk):
+        obj = get_object_or_404(TourPackage, id=pk)
+        packages = TourPackage.objects.filter(
             Q(starting_date__gte=obj.starting_date - timedelta(days=5),
               starting_date__lte=obj.starting_date + timedelta(days=5),
               ending_date__lte=obj.ending_date + timedelta(days=5),
-              ending_date__gte=obj.ending_date - timedelta(days=5), is_expired=False) & ~Q(id=obj.id)), many=True).data
-        return Response({'related_city': serializer_related_city, 'related_period': serializer_related_period})
+              ending_date__gte=obj.ending_date - timedelta(days=5), is_expired=False) & ~Q(id=obj.id))
+
+        pagination = self.pagination_class()
+        packages = pagination.paginate_queryset(queryset=packages, request=request, view=self)
+
+        serializer_related_period = self.serializer_class(packages, many=True).data
+        return Response(pagination.get_paginated_response(serializer_related_period).data)
 
 
 # Get featured tours
 class GetFeaturedToursAPIView(GenericAPIView):
-    serializer_class = TourPackageSerializer
+    serializer_class = TourPackageSerializerList
     permission_classes = (AllowAny,)
+    pagination_class = CustomPagination
 
     def get(self, request):
-        queryset = TourPackage.objects.filter(is_featured=True)
-        featured_tours = self.serializer_class(queryset, many=True).data
-        return Response({'featured_tours': featured_tours, })
+        packages = TourPackage.objects.filter(is_featured=True)
+
+        pagination = self.pagination_class()
+        packages = pagination.paginate_queryset(queryset=packages, request=request, view=self)
+
+        featured_tours = self.serializer_class(packages, many=True).data
+        return Response(pagination.get_paginated_response(featured_tours).data)
 
 
 class TourPackageSearchAPIView(GenericAPIView):
@@ -87,8 +115,7 @@ class TourPackageSearchAPIView(GenericAPIView):
     ordering_fields = ['starting_date']
     ordering = ['starting_date']
     permission_classes = (AllowAny,)
-
-    # pagination_class = CustomCursorPagination
+    pagination_class = CustomPagination
 
     def get(self, request):
 
@@ -197,9 +224,11 @@ class TourPackageSearchAPIView(GenericAPIView):
                                 filtered_packages.append(package)
                         packages = filtered_packages
 
-                    # agency_list = [package.agency.chat_id for package in packages if package.agency.chat_id]
+                    pagination = self.pagination_class()
+                    packages = pagination.paginate_queryset(queryset=packages, request=request, view=self)
+
                     serializer = self.serializer_class(packages, many=True)
-                    return Response(serializer.data)
+                    return Response(pagination.get_paginated_response(serializer.data).data)
                 except ValueError as e:
                     raise ValidationError({'success': False, 'message': _(
                         'You should send the ids of options,category.Digital entrance for price.')})
@@ -266,13 +295,29 @@ class GetCityMatchAPIView(GenericAPIView):
     permission_classes = (AllowAny,)
 
     def get(self, request):
+        from .documents import CityDocument
+        from elasticsearch_dsl import Q as QUERY
         city = request.query_params.get('city', None)
+        city_list = []
+
         if city:
-            city_list = [city.name for city in City.objects.filter(Q(name__istartswith=city))]
-            city_list += [city.name for city in City.objects.filter(Q(name__icontains=city)) if
-                          city.name not in city_list]
-            return Response({"city_list": city_list})
-        return Response([])
+            q = QUERY(
+                "multi_match",
+                query=city,
+                fields=[
+                    "name"
+                ],
+                fuzziness="auto")
+            # search = CityDocument.search().query(q)
+            # response = search.execute()
+            # city_list = [city.name for city in search]
+
+            if not city_list:
+                city_list += [city.name for city in City.objects.filter(Q(name__istartswith=city)) if
+                              city.name not in city_list]
+                city_list += [city.name for city in City.objects.filter(Q(name__icontains=city)) if
+                              city.name not in city_list]
+        return Response({"city_list": city_list})
 
 
 class GetCityFeaturesAPIView(GenericAPIView):

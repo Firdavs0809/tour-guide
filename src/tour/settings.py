@@ -3,6 +3,7 @@ from pathlib import Path
 
 from django.conf import settings
 from dotenv import load_dotenv
+from elasticsearch import Elasticsearch
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -36,7 +37,7 @@ INSTALLED_APPS = [
     # Third  party
     'corsheaders',
     'storages',
-    # 'django_elasticsearch_dsl',
+    'django_elasticsearch_dsl',
 
     # Local apps
     'tour.user',
@@ -56,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'tour.agency.middleware.StatsMiddleware',
 ]
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_HEADERS = ['*']
@@ -172,5 +174,13 @@ STORAGES = {
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    }
+}
+
+ELASTICSEARCH_DSL = {
+    "default": {
+        "hosts": "https://localhost:9200",
+        "http_auth": ("elastic", "G0=lAd8tY_YhP=hJQpMF"),
+        "ca_certs": "/Users/firdavs/Downloads/elasticsearch-8.12.2/config/certs/http_ca.crt",
     }
 }

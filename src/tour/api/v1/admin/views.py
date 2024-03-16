@@ -5,14 +5,14 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.utils import json
 
+from ....agency.custom_pagination import CustomPagination
 from ....agency.models import TourPackage, Company, Options
 from ....agency.serializers import CompanySerializer
 from ....user.models import User
 import requests
 from .serializers import AgencyRegistrationSerializer, AgencyRegistrationActivationSerializer, \
-    TourPackageCreateSerializer, \
-    ChangeAgencyInfoSerializer
-from .custom_permissions import IsAdminIsOwnerOrReadOnly, IsAdminIsAuthenticated
+    TourPackageCreateSerializer, CompanyListSerializer
+from .custom_permissions import IsAdminIsOwnerOrReadOnly, IsAdminIsAuthenticatedIsTourOwner, IsSuperUser
 
 
 class AgencyRegisterAPIView(GenericAPIView):
@@ -65,18 +65,18 @@ class AgencyRegistrationActivationAPIView(GenericAPIView):
         return Response(response.json())
 
 
-class GetAgencyAPIView(GenericAPIView):
-    permission_classes = (AllowAny,)
-    serializer_class = CompanySerializer
-
-    def get(self, request, pk):
-        agency = Company.objects.filter(id=pk).first()
-        if agency:
-            serializer = self.serializer_class(instance=agency)
-            data = serializer.data
-            data['phone_number'] = agency.admin.phone_number
-            return Response({"agency": data})
-        return Response({'success': False, 'message': "Tour not Found"}, status=status.HTTP_400_BAD_REQUEST)
+# class GetAgencyAPIView(GenericAPIView):
+#     permission_classes = (AllowAny,)
+#     serializer_class = CompanySerializer
+#
+#     def get(self, request, pk):
+#         agency = Company.objects.filter(id=pk).first()
+#         if agency:
+#             serializer = self.serializer_class(instance=agency)
+#             data = serializer.data
+#             data['phone_number'] = agency.admin.phone_number
+#             return Response({"agency": data})
+#         return Response({'success': False, 'message': "Tour not Found"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class AgencyRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
@@ -101,20 +101,19 @@ class AgencyRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
         return super().partial_update(request, *args, **kwargs)
 
 
-# class ChangeAgencyInfoAPIView(GenericAPIView):
-#     serializer_class = AgencySerializer
-#     permission_classes = (AllowAny,)
-#
-#     def put(self, reqeust):
-#         super().pu
-#
-#     def patch(self, request):
-#         pass
+class AgencyListAPIView(ListAPIView):
+    serializer_class = CompanyListSerializer
+    permission_classes = (IsSuperUser,)
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        queryset = Company.objects.all()
+        return queryset
 
 
 class TourPackageCreateAPIView(CreateAPIView):
     serializer_class = TourPackageCreateSerializer
-    permission_classes = (IsAdminIsAuthenticated,)
+    permission_classes = (IsAdminIsAuthenticatedIsTourOwner,)
 
     def perform_create(self, serializer):
         serializer.save()
