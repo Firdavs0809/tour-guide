@@ -308,9 +308,9 @@ class GetCityMatchAPIView(GenericAPIView):
                     "name"
                 ],
                 fuzziness="auto")
-            # search = CityDocument.search().query(q)
-            # response = search.execute()
-            # city_list = [city.name for city in search]
+            search = CityDocument.search().query(q)
+            response = search.execute()
+            city_list = [city.name for city in search]
 
             if not city_list:
                 city_list += [city.name for city in City.objects.filter(Q(name__istartswith=city)) if
