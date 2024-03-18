@@ -14,9 +14,9 @@ from .models import TourPackage, Company, Booking, Hotel
 from .serializers import TourPackageSerializer, ImageUploadSerializer, TourPackageSerializerList
 from .models import City, Options, Category, Country
 from .serializers import ConfirmBookingSerializer, CompanySerializer, FeatureSerializer, PopularCitySerializer, \
-    OptionsSerializer, CategorySerializer, HotelSerializer, DestinationSerializer, ActivitySerializer
+    OptionsSerializer, CategorySerializer, HotelSerializer, DestinationSerializer, ActivitySerializer, \
+    HotelListSerializer
 from .utils import send_message
-from rest_framework.filters import OrderingFilter
 from .custom_pagination import CustomPagination, CustomCursorPagination
 
 
@@ -32,11 +32,7 @@ class TourPackageListAPIView(ListAPIView):
     queryset = TourPackage.objects.all()
     serializer_class = TourPackageSerializerList
     permission_classes = (AllowAny,)
-
     pagination_class = CustomPagination
-
-    # filter_backends = [filters.SearchFilter]
-    # search_fields = ['title', 'city_to__name', ]
 
     def get_queryset(self):
         city = self.request.query_params.get('city', )
@@ -112,7 +108,7 @@ class TourPackageSearchAPIView(GenericAPIView):
     serializer_class = TourPackageSerializerList
     queryset = TourPackage.objects.all()
     filter_backends = [filters.OrderingFilter]
-    ordering_fields = ['starting_date']
+    ordering_fields = ['starting_date', 'is_featured', 'price']
     ordering = ['starting_date']
     permission_classes = (AllowAny,)
     pagination_class = CustomPagination
@@ -228,7 +224,12 @@ class TourPackageSearchAPIView(GenericAPIView):
                     packages = pagination.paginate_queryset(queryset=packages, request=request, view=self)
 
                     serializer = self.serializer_class(packages, many=True)
-                    return Response(pagination.get_paginated_response(serializer.data).data)
+
+                    booked_tours = []
+                    if request.user.is_authenticated:
+                        booked_tours = [package.id for package in request.user.profile.packages.all()]
+                    return Response(
+                        {'packages': pagination.get_paginated_response(serializer.data).data, 'booked': booked_tours})
                 except ValueError as e:
                     raise ValidationError({'success': False, 'message': _(
                         'You should send the ids of options,category.Digital entrance for price.')})
@@ -251,43 +252,59 @@ class ImageUploadView(GenericAPIView):
 
 # Confirm Booking API View
 class ConfirmBookingAPIView(GenericAPIView):
-    serializer_class = ConfirmBookingSerializer
     permission_classes = (IsAuthenticated,)
+    serializer_class = ConfirmBookingSerializer
+
+    def get(self, request, pk):
+        user = request.user
+        data = {
+            'phone_number': user.phone_number,
+        }
+        if user.first_name and user.last_name:
+            data.update({'first_name': user.first_name, 'last_name': user.last_name})
+        return Response(data)
 
     def post(self, request, pk):
+        profile = request.user.profile
+
+        serializer = self.serializer_class(data=request.data, context={'profile': profile})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
         try:
             package = TourPackage.objects.get(pk=pk)
         except TourPackage.DoesNotExist:
             raise ValidationError({"success": False, "detail": "Tour Package not Found"})
 
-        profile = request.user.profile
         if package not in profile.packages.all():
             profile.packages.add(package)
         else:
-            raise ValidationError({"success": False, "detail": _("You have already booked that tour.")})
+            raise ValidationError({"success": False, "message": _("You have already booked that tour.")})
 
         (obj, created) = Booking.objects.get_or_create(package=package, profile=profile)
         if created:
 
-            serializer = CompanySerializer(package.agency)
-            data = serializer.data
-            data['phone_number'] = package.agency.admin.phone_number
+            # serializer = CompanySerializer(package.agency)
+            # data = serializer.data
+            # data['phone_number'] = request.user.phone_number
+
             obj.comment = request.data.get('comment', None)
             obj.save()
-
             message = (f"You have a client!\n"
                        f"Tour package: {package.title}\n"
-                       f"user: {request.user.first_name}\n"
+                       f"user: {profile.first_name} {profile.last_name}\n"
                        f"username: @fredo\n"
-                       f"phone_number: +{request.user.phone_number}")
+                       f"phone_number: +{request.user.phone_number}\n"
+                       f"comment: {obj.comment.title()[:50]}")
 
             try:
                 send_message(message, package.agency.chat_id)
             except:
                 raise ValidationError({'detail': "Agency is not a member of the bot."})
 
-            return Response({'agency': data})
-        raise ValidationError({'detail': _("You have already booked for that tour package.")})
+            # return Response({'agency': data})
+            return Response({'detail': 'ok', 'message': _('Successfully booked!')})
+        raise ValidationError({'success': False, 'message': _("Something went wrong. Please contact support!")})
 
 
 # get city view
@@ -347,10 +364,9 @@ class GetFiltersAPIView(GenericAPIView):
         city = City.objects.filter(id=pk)
         if city.exists():
             city = city.first()
-            features = FeatureSerializer(city.features.all(), many=True).data
+            features = city.features.all()
 
-            activities = []
-            destinations = []
+            activities, destinations, options, hotels, category = [], [], [], [], []
 
             packages = TourPackage.objects.filter(city_to=city)
             for package in packages:
@@ -361,6 +377,18 @@ class GetFiltersAPIView(GenericAPIView):
                 for activity in package.activities.all():
                     if activity not in activities:
                         activities.append(activity)
+
+                for option in package.options.all():
+                    if option not in options:
+                        options.append(option)
+
+                for hotel in package.hotels.all():
+                    if hotel not in hotels:
+                        hotels.append(hotel)
+
+                for each_category in package.category.all():
+                    if each_category not in category:
+                        category.append(each_category)
 
             # STATIC duration generator no need for dynamic one
             # if (package.ending_date - package.starting_date).days not in durations:
@@ -389,9 +417,15 @@ class GetFiltersAPIView(GenericAPIView):
                              range(0, 10, 3)]
 
             return Response(
-                {"activities": ActivitySerializer(activities, many=True).data,
-                 'destinations': DestinationSerializer(destinations, many=True).data, 'features': features,
-                 'durations': durations})
+                {
+                    "activities": ActivitySerializer(activities, many=True).data,
+                    'destinations': DestinationSerializer(destinations, many=True).data,
+                    'features': FeatureSerializer(features, many=True).data,
+                    'durations': durations,
+                    'options': OptionsSerializer(options, many=True).data,
+                    'category': CategorySerializer(category, many=True).data,
+                    'hotels': HotelListSerializer(hotels, many=True).data
+                })
         return Response([])
 
 

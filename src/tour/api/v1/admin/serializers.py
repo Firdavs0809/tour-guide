@@ -129,8 +129,8 @@ class AgencyRegistrationActivationSerializer(serializers.Serializer):
                 error_message = 'Company admin account not activated successfully!'
                 raise ValidationError(error_message)
 
-            agency.is_waiting = True
-            agency.save()
+            # agency.is_waiting = True
+            # agency.save()
             tmp.is_verified = True
             tmp.save()
             return agency
@@ -170,9 +170,6 @@ class TourPackageCreateSerializer(serializers.ModelSerializer):
         message = None
         if attrs.get('ending_date') <= attrs.get("starting_date"):
             message = _("Invalid date interval for tour. Please check the starting and ending date you entered.")
-        package = TourPackage.objects.filter(title=attrs.get('title'), )
-        if package.exists():
-            message = _("Tour already registered. If you want to edit it . Go to the edit page.")
         if message:
             raise ValidationError({'success': False, 'message': message})
         return attrs
@@ -235,6 +232,12 @@ class TourPackageCreateSerializer(serializers.ModelSerializer):
         return price
 
     def create(self, validated_data):
+
+        package = TourPackage.objects.filter(title=validated_data.get('title'), )
+        if package.exists():
+            raise ValidationError({'success': False, 'message': _(
+                "Tour already registered. If you want to edit it . Go to the edit page.")})
+
         admin = self.context.get('admin')
         with transaction.atomic():
             package = TourPackage.objects.create(
@@ -270,7 +273,7 @@ class TourPackageCreateSerializer(serializers.ModelSerializer):
             for each_category in category:
                 try:
                     obj = Category.objects.get(id=each_category)
-                except Category.DoesNotExist:
+                except Exception as e:
                     raise ValidationError(
                         {'success': False, 'message': _(f"Category with id:{each_category} does not exist.")})
                 finally:
@@ -279,7 +282,7 @@ class TourPackageCreateSerializer(serializers.ModelSerializer):
             for option in options:
                 try:
                     obj = Options.objects.get(id=option)
-                except Options.DoesNotExist:
+                except Exception as e:
                     raise ValidationError(
                         {'success': False, 'message': _(f"Option with id:{option} does not exist.")})
                 finally:
@@ -288,19 +291,99 @@ class TourPackageCreateSerializer(serializers.ModelSerializer):
             for hotel in hotels:
                 try:
                     obj = Hotel.objects.get(id=hotel)
-                except Hotel.DoesNotExist:
+                except Exception as e:
                     raise ValidationError(
                         {'success': False, 'message': _(f"HOTEL with id:{hotel} does not exist.")})
                 finally:
                     package.hotels.add(obj)
 
             package.save()
+        self.validated_data['message'] = _('Your package created successfully!')
+        return package
 
+    def update(self, instance, validated_data):
+        package = instance
+
+        package.title = validated_data.get('title', package.title)
+        package.starting_date = validated_data.get('starting_date', package.starting_date)
+        package.ending_date = validated_data.get('ending_date', package.ending_date)
+        package.description = validated_data.get('description', package.description)
+        package.airport_from = validated_data.get('airport_from', package.airport_from)
+        package.airport_to = validated_data.get('airport_to', package.airport_to)
+        package.price = validated_data.get('price', package.price)
+        package.city_from_id = validated_data.get('city_from', package.city_from_id)
+        package.city_to_id = validated_data.get('city_to', package.city_to_id)
+
+        category, options, hotels, images = validated_data.get('category')[0].split(','), validated_data.get('options')[
+            0].split(','), validated_data.get('hotels')[0].split(','), validated_data.get('images')[0].split(',')
+
+        clone_images = package.images
+        if clone_images:
+            for uploaded_image in clone_images:
+                if uploaded_image not in images:
+                    package.images.remove(uploaded_image)
+
+        for image in images:
+            allowed_image_format = ['jpg', 'jpeg', 'png', 'avif', 'gif']
+            if image.split('.')[-1] not in allowed_image_format:
+                raise ValidationError(
+                    {'success': False,
+                     'message': _(f"Image extension not allowed.Allowec exts:{allowed_image_format}'")})
+            try:
+                package.images.append(image)
+            except AttributeError:
+                package.images = [image]
+                package.image = image
+
+        for each_category in package.category.all():
+            if each_category.id not in category:
+                package.category.remove(each_category)
+
+        for each_category in category:
+            try:
+                obj = Category.objects.get(id=each_category)
+            except Exception as e:
+                raise ValidationError(
+                    {'success': False, 'message': _(f"Category with id:{each_category} does not exist.")})
+            finally:
+                if each_category not in package.category.all():
+                    package.category.add(obj)
+
+        for option in package.options.all():
+            if option.id not in options:
+                package.options.remove(option)
+
+        for option in options:
+            try:
+                obj = Options.objects.get(id=option)
+            except Exception as e:
+                raise ValidationError(
+                    {'success': False, 'message': _(f"Option with id:{option} does not exist.")})
+            finally:
+                if option not in package.options.all():
+                    package.options.add(obj)
+
+        for hotel in package.hotels.all():
+            if hotel.id not in hotels:
+                package.hotels.remove(hotel)
+
+        for hotel in hotels:
+            try:
+                obj = Hotel.objects.get(id=hotel)
+            except Exception as e:
+                raise ValidationError(
+                    {'success': False, 'message': _(f"HOTEL with id:{hotel} does not exist.")})
+            finally:
+                if hotel not in package.hotels.all():
+                    package.hotels.add(obj)
+
+        package.save()
+        self.validated_data['message'] = _('Changes saved successfully!')
         return package
 
     def to_representation(self, instance):
         data = {
             'success': 'ok',
-            'message': _("Tour Package created successfully!")
+            'message': _(self.validated_data.get('message', "Something went wrong Please contact support!"))
         }
         return data

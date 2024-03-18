@@ -1,18 +1,20 @@
+from django.utils.translation import gettext_lazy as _
 from rest_framework import status
-from rest_framework.generics import GenericAPIView, CreateAPIView, ListAPIView, RetrieveUpdateDestroyAPIView
-from rest_framework.permissions import AllowAny
+from rest_framework.generics import GenericAPIView, CreateAPIView, ListAPIView, RetrieveUpdateDestroyAPIView, \
+    get_object_or_404
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.utils import json
 
 from ....agency.custom_pagination import CustomPagination
 from ....agency.models import TourPackage, Company, Options
-from ....agency.serializers import CompanySerializer
+from ....agency.serializers import CompanySerializer, TourPackageSerializer
 from ....user.models import User
 import requests
 from .serializers import AgencyRegistrationSerializer, AgencyRegistrationActivationSerializer, \
     TourPackageCreateSerializer, CompanyListSerializer
-from .custom_permissions import IsAdminIsOwnerOrReadOnly, IsAdminIsAuthenticatedIsTourOwner, IsSuperUser
+from .custom_permissions import IsAdminIsOwner, IsAdminIsAuthenticatedIsTourOwner, IsSuperUser
 
 
 class AgencyRegisterAPIView(GenericAPIView):
@@ -65,29 +67,10 @@ class AgencyRegistrationActivationAPIView(GenericAPIView):
         return Response(response.json())
 
 
-# class GetAgencyAPIView(GenericAPIView):
-#     permission_classes = (AllowAny,)
-#     serializer_class = CompanySerializer
-#
-#     def get(self, request, pk):
-#         agency = Company.objects.filter(id=pk).first()
-#         if agency:
-#             serializer = self.serializer_class(instance=agency)
-#             data = serializer.data
-#             data['phone_number'] = agency.admin.phone_number
-#             return Response({"agency": data})
-#         return Response({'success': False, 'message': "Tour not Found"}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class AgencyRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
-    permission_classes = (IsAdminIsOwnerOrReadOnly,)
+class AgencyUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+    permission_classes = (IsAdminIsOwner,)
     serializer_class = CompanySerializer
     queryset = Company.objects.all()
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.serializer_class(instance)
-        return Response(serializer.data)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -101,6 +84,33 @@ class AgencyRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
         return super().partial_update(request, *args, **kwargs)
 
 
+class AgencyMeAPIView(GenericAPIView):
+    permission_classes = (IsAdminIsOwner,)
+    serializer_class = CompanySerializer
+
+    def get(self, request):
+        user = request.user
+        try:
+            data = self.serializer_class(instance=user.agency).data
+        except Exception as e:
+            data = {'success': False, 'message': _('You don\'t own a company! You are super!')}
+        return Response(data=data)
+
+
+class AgencyAcceptAPIView(GenericAPIView):
+    permission_classes = (IsSuperUser,)
+
+    def post(self, request, pk):
+        agency = get_object_or_404(Company, id=pk)
+        data = {'success': False, 'message': _(f'Agency: {agency.name} - is already verified.')}
+        if not agency.is_verified and agency.is_waiting:
+            agency.is_verified = True
+            agency.is_waiting = False
+            agency.save()
+            data = {'success': True, 'message': _(f'Agency: {agency.name} - is successfully verified.')}
+        return Response(data=data)
+
+
 class AgencyListAPIView(ListAPIView):
     serializer_class = CompanyListSerializer
     permission_classes = (IsSuperUser,)
@@ -108,6 +118,16 @@ class AgencyListAPIView(ListAPIView):
 
     def get_queryset(self):
         queryset = Company.objects.all()
+        return queryset
+
+
+class AgencyListWaitingAPIView(ListAPIView):
+    serializer_class = CompanyListSerializer
+    permission_classes = (IsSuperUser,)
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        queryset = Company.objects.filter(is_waiting=True)
         return queryset
 
 
@@ -123,3 +143,42 @@ class TourPackageCreateAPIView(CreateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class TourPackageRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+    serializer_class = TourPackageCreateSerializer
+    permission_classes = (IsAdminIsAuthenticatedIsTourOwner,)
+    queryset = TourPackage.objects.all()
+
+    def retrieve(self, request, *args, **kwargs):
+        serializer = TourPackageSerializer(self.get_object())
+        return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        package = self.get_object()
+        package.delete()
+        return Response(data={
+            'success': 'ok',
+            'message': _('Tour deleted successfully!')
+        })
+
+
+class TourPackageCreateNotifyAPIView(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        if request.user.is_staff:
+            return Response({'detail': 'ok'})
+        agency = request.user.agency
+        if agency and not agency.is_waiting:
+            agency.is_waiting = True
+            agency.save()
+            message = _(
+                'The company has been notified. You can create your post soon after they confirmed your account!')
+        else:
+            message = _(
+                'You have already notified the company. Please wait until they confirm you are real agency!')
+        return Response({'success': True, 'message': message})

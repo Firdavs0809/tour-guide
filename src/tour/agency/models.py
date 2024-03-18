@@ -58,7 +58,11 @@ class Company(models.Model):
 
     is_bot_connected = models.BooleanField(default=False, )
     is_verified = models.BooleanField(default=False, )
-    is_waiting = models.BooleanField(default=True, )
+    is_waiting = models.BooleanField(default=False, )
+
+    created_time = models.DateTimeField(auto_now_add=True, editable=False,null=True)
+    updated_time = ArrayField(models.DateTimeField(auto_now=True), null=True, blank=True,editable=False)
+    verified_time = ArrayField(models.DateTimeField(), null=True, blank=True,editable=False)
 
     def calculate_rating(self, user_rating):
         """
@@ -86,8 +90,8 @@ class City(models.Model):
     is_popular = models.BooleanField(default=False)
     features = models.ManyToManyField("Feature", )
     country = models.ForeignKey(Country, related_name='cities', blank=True, null=True, on_delete=models.SET_NULL)
-    lat=models.DecimalField(max_digits=10,decimal_places=4,null=True,blank=True)
-    lng=models.DecimalField(max_digits=10,decimal_places=4,null=True,blank=True)
+    lat = models.DecimalField(max_digits=10, decimal_places=4, null=True, blank=True)
+    lng = models.DecimalField(max_digits=10, decimal_places=4, null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -139,10 +143,15 @@ class TourPackage(models.Model):
     destinations = models.ManyToManyField("Destination", blank=True)
     activities = models.ManyToManyField('Activity', blank=True)
 
-    def calc_expiration(self):
-        if timezone.now >= self.starting_date:
-            return True
-        return False
+    created_time = models.DateTimeField(auto_now_add=True, editable=False, null=True, blank=True)
+    updated_time = ArrayField(models.DateTimeField(auto_now=True), null=True, blank=True,editable=False)
+    verified_time = ArrayField(models.DateTimeField(), null=True, blank=True,editable=False)
+
+    # @property
+    # def check_expiration(self):
+    #     if timezone.now >= self.starting_date:
+    #         return True
+    #     return False
 
     def __str__(self):
         return self.title
