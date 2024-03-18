@@ -318,15 +318,15 @@ class GetCityMatchAPIView(GenericAPIView):
         city_list = []
 
         if city:
-            q = QUERY(
-                "multi_match",
-                query=city,
-                fields=[
-                    "name"
-                ],
-                fuzziness="auto")
-            search = CityDocument.search().query(q)
-            response = search.execute()
+            # q = QUERY(
+            #     "multi_match",
+            #     query=city,
+            #     fields=[
+            #         "name"
+            #     ],
+            #     fuzziness="auto")
+            # search = CityDocument.search().query(q)
+            # response = search.execute()
             city_list = [city.name for city in search]
 
             if not city_list:

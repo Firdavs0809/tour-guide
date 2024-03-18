@@ -180,7 +180,7 @@ STORAGES = {
 ELASTICSEARCH_DSL = {
     "default": {
         "hosts": "https://localhost:9200",
-        "http_auth": ("elastic", "G0=lAd8tY_YhP=hJQpMF"),
-        "ca_certs": "/Users/firdavs/Downloads/elasticsearch-8.12.2/config/certs/http_ca.crt",
+        "http_auth": (os.getenv('ELASTIC_USER'), os.getenv('ELASTIC_PASSWORD')),
+        "ca_certs": os.getenv('CA_CERTS'),
     }
 }
