@@ -4,7 +4,7 @@ from .views import TourPackageListAPIView, TourPackageDetailAPIView, TourPackage
     GetFeaturedToursAPIView, GetFiltersAPIView, GetPopularCityAPIView, GetCityFeaturesAPIView, ExcludeExpiredPackages, \
     SetAgencyIdAPIView, CategoryListAPIView, OptoinsListAPIView, GetTourPackageCategoryAPIView, \
     GetTourPackageOptionsAPIView, HotelsDetailAPIView, CategoryDetailAPIView, OptionsDetailAPIView, \
-    GetTourPackageHotelsAPIView
+    GetTourPackageHotelsAPIView,GetCountryMatchAPIView
 
 urlpatterns = [
     # gives the top package to a city(default)
@@ -35,6 +35,7 @@ urlpatterns = [
 
     # data regarding city
     path('city/', GetCityMatchAPIView.as_view(), name='get-city-match'),
+    path('country/', GetCountryMatchAPIView.as_view(), name='get-country-match'),
     path('city/popular/', GetPopularCityAPIView.as_view(), name='get-city-popular'),
     path('city/<int:pk>/filters/', GetFiltersAPIView.as_view(), name='get-filters'),
     path('city/<int:cityId>/features/', GetCityFeaturesAPIView.as_view(), name='get-features'),

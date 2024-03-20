@@ -318,16 +318,19 @@ class GetCityMatchAPIView(GenericAPIView):
         city_list = []
 
         if city:
-            # q = QUERY(
-            #     "multi_match",
-            #     query=city,
-            #     fields=[
-            #         "name"
-            #     ],
-            #     fuzziness="auto")
-            # search = CityDocument.search().query(q)
-            # response = search.execute()
-            # city_list = [city.name for city in search]
+            q = QUERY(
+                "multi_match",
+                query=city,
+                fields=[
+                    "name"
+                ],
+                fuzziness="auto")
+            try:
+                search = CityDocument.search().query(q)
+                response = search.execute()
+                city_list = [city.name for city in search]
+            except Exception as e:
+                print(e)
 
             if not city_list:
                 city_list += [city.name for city in City.objects.filter(Q(name__istartswith=city)) if
@@ -335,6 +338,38 @@ class GetCityMatchAPIView(GenericAPIView):
                 city_list += [city.name for city in City.objects.filter(Q(name__icontains=city)) if
                               city.name not in city_list]
         return Response({"city_list": city_list})
+
+
+class GetCountryMatchAPIView(GenericAPIView):
+    permission_classes = (AllowAny,)
+
+    def get(self, request):
+        from .documents import CountryDocument
+        from elasticsearch_dsl import Q as QUERY
+        country = request.query_params.get('country', None)
+        country_list = []
+
+        if country:
+            q = QUERY(
+                "multi_match",
+                query=country,
+                fields=[
+                    "name"
+                ],
+                fuzziness="auto")
+            try:
+                search = CountryDocument.search().query(q)
+                response = search.execute()
+                country_list = [city.name for city in search]
+            except Exception as e:
+                print(e)
+
+            if not country_list:
+                country_list += [country.name for country in Country.objects.filter(Q(name__istartswith=country)) if
+                                 country.name not in country_list]
+                country_list += [country.name for country in Country.objects.filter(Q(name__icontains=country)) if
+                                 country.name not in country_list]
+        return Response({"country_list": country_list})
 
 
 class GetCityFeaturesAPIView(GenericAPIView):
