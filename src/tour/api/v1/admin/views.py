@@ -9,7 +9,7 @@ from rest_framework.utils import json
 
 from ....agency.custom_pagination import CustomPagination
 from ....agency.models import TourPackage, Company, Options
-from ....agency.serializers import CompanySerializer, TourPackageSerializer
+from ....agency.serializers import CompanySerializer, TourPackageSerializer, HotelSerializer
 from ....user.models import User
 import requests
 from .serializers import AgencyRegistrationSerializer, AgencyRegistrationActivationSerializer, \
@@ -143,6 +143,21 @@ class TourPackageCreateAPIView(CreateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class HotelCreateAPIView(CreateAPIView):
+    serializer_class = HotelSerializer
+    permission_classes = (IsAdminIsAuthenticatedIsTourOwner,)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        data = {
+            'success': True,
+            'message': _("Hotel is created successfully!")
+        }
+        return Response(data=data, status=status.HTTP_201_CREATED)
 
 
 class TourPackageRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):

@@ -55,6 +55,9 @@ class HotelSerializer(serializers.ModelSerializer):
         model = Hotel
         fields = "__all__"
 
+    def create(self, validated_data):
+        return super().create(validated_data)
+
 
 class HotelListSerializer(serializers.Serializer):
     id = serializers.IntegerField()

@@ -315,7 +315,11 @@ class GetCityMatchAPIView(GenericAPIView):
         from .documents import CityDocument
         from elasticsearch_dsl import Q as QUERY
         city = request.query_params.get('city', None)
+
         city_list = []
+        # start_with is highest priority(1)
+        city_list += [city.name for city in City.objects.filter(Q(name__istartswith=city)) if
+                      city.name not in city_list]
 
         if city:
             q = QUERY(
@@ -328,16 +332,14 @@ class GetCityMatchAPIView(GenericAPIView):
             try:
                 search = CityDocument.search().query(q)
                 response = search.execute()
-                city_list = [city.name for city in search]
+                city_list += [city.name for city in search if city.name not in city_list]
             except Exception as e:
                 print(e)
 
-            if not city_list:
-                city_list += [city.name for city in City.objects.filter(Q(name__istartswith=city)) if
-                              city.name not in city_list]
-                city_list += [city.name for city in City.objects.filter(Q(name__icontains=city)) if
-                              city.name not in city_list]
-        return Response({"city_list": city_list})
+            city_list += [city.name for city in City.objects.filter(Q(name__icontains=city)) if
+                          city.name not in city_list]
+
+        return Response({"city_list": city_list[:10]})
 
 
 class GetCountryMatchAPIView(GenericAPIView):
@@ -348,6 +350,9 @@ class GetCountryMatchAPIView(GenericAPIView):
         from elasticsearch_dsl import Q as QUERY
         country = request.query_params.get('country', None)
         country_list = []
+
+        country_list += [country.name for country in Country.objects.filter(Q(name__istartswith=country)) if
+                         country.name not in country_list]
 
         if country:
             q = QUERY(
@@ -360,15 +365,13 @@ class GetCountryMatchAPIView(GenericAPIView):
             try:
                 search = CountryDocument.search().query(q)
                 response = search.execute()
-                country_list = [city.name for city in search]
+                country_list += [country.name for country in search if country.name not in country_list]
             except Exception as e:
                 print(e)
 
-            if not country_list:
-                country_list += [country.name for country in Country.objects.filter(Q(name__istartswith=country)) if
-                                 country.name not in country_list]
-                country_list += [country.name for country in Country.objects.filter(Q(name__icontains=country)) if
-                                 country.name not in country_list]
+            country_list += [country.name for country in Country.objects.filter(Q(name__icontains=country)) if
+                             country.name not in country_list]
+
         return Response({"country_list": country_list})
 
 

@@ -10,6 +10,8 @@ class Hotel(models.Model):
     name = models.CharField(max_length=200, null=True, blank=True)
     stars = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)], null=True, blank=True)
     link = models.CharField(max_length=250, null=True, blank=True)
+    price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True,
+                                validators=[MinValueValidator(0)])
 
     def __str__(self):
         return self.name
@@ -60,9 +62,9 @@ class Company(models.Model):
     is_verified = models.BooleanField(default=False, )
     is_waiting = models.BooleanField(default=False, )
 
-    created_time = models.DateTimeField(auto_now_add=True, editable=False,null=True)
-    updated_time = ArrayField(models.DateTimeField(auto_now=True), null=True, blank=True,editable=False)
-    verified_time = ArrayField(models.DateTimeField(), null=True, blank=True,editable=False)
+    created_time = models.DateTimeField(auto_now_add=True, editable=False, null=True)
+    updated_time = ArrayField(models.DateTimeField(auto_now=True), null=True, blank=True, editable=False)
+    verified_time = ArrayField(models.DateTimeField(), null=True, blank=True, editable=False)
 
     def calculate_rating(self, user_rating):
         """
@@ -144,8 +146,8 @@ class TourPackage(models.Model):
     activities = models.ManyToManyField('Activity', blank=True)
 
     created_time = models.DateTimeField(auto_now_add=True, editable=False, null=True, blank=True)
-    updated_time = ArrayField(models.DateTimeField(auto_now=True), null=True, blank=True,editable=False)
-    verified_time = ArrayField(models.DateTimeField(), null=True, blank=True,editable=False)
+    updated_time = ArrayField(models.DateTimeField(auto_now=True), null=True, blank=True, editable=False)
+    verified_time = ArrayField(models.DateTimeField(), null=True, blank=True, editable=False)
 
     # @property
     # def check_expiration(self):

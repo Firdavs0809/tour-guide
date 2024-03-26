@@ -57,7 +57,6 @@ class RegistrationActivationView(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         try:
             root = serializer.save()
-            print(root)
             if root:
 
                 # logic for user not auth required
