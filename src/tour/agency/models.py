@@ -10,8 +10,8 @@ class Hotel(models.Model):
     name = models.CharField(max_length=200, null=True, blank=True)
     stars = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)], null=True, blank=True)
     link = models.CharField(max_length=250, null=True, blank=True)
-    price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True,
-                                validators=[MinValueValidator(0)])
+    # price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True,
+    #                             validators=[MinValueValidator(0)])
 
     def __str__(self):
         return self.name

@@ -315,13 +315,15 @@ class GetCityMatchAPIView(GenericAPIView):
         from .documents import CityDocument
         from elasticsearch_dsl import Q as QUERY
         city = request.query_params.get('city', None)
+        country = request.query_params.get('country', None)
 
         city_list = []
-        # start_with is highest priority(1)
-        city_list += [city.name for city in City.objects.filter(Q(name__istartswith=city)) if
-                      city.name not in city_list]
 
         if city:
+            # start_with is highest priority(1)
+            city_list += [city.name for city in City.objects.filter(Q(name__istartswith=city)) if
+                          city.name not in city_list]
+
             q = QUERY(
                 "multi_match",
                 query=city,
@@ -339,7 +341,16 @@ class GetCityMatchAPIView(GenericAPIView):
             city_list += [city.name for city in City.objects.filter(Q(name__icontains=city)) if
                           city.name not in city_list]
 
-        return Response({"city_list": city_list[:10]})
+        if country:
+            country = get_object_or_404(Country, name=country)
+            city_list_by_country = [city.name for city in country.cities.all()]
+            if city:
+                temp = [city for city in city_list if city in city_list_by_country]
+                city_list = temp
+            else:
+                city_list = city_list_by_country
+
+        return Response({"city_list": city_list})
 
 
 class GetCountryMatchAPIView(GenericAPIView):
