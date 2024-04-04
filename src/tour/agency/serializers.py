@@ -117,14 +117,14 @@ class ConfirmBookingSerializer(serializers.Serializer):
     phone_number = serializers.CharField(max_length=13, min_length=12, required=True, write_only=True,
                                          validators=[phone_regex])
     comment = serializers.CharField(required=False)
-    name = serializers.CharField(max_length=50, required=True)
-    # last_name = serializers.CharField(max_length=50, required=True)
+    first_name = serializers.CharField(max_length=50, required=True)
+    last_name = serializers.CharField(max_length=50, required=True)
 
     def save(self, **kwargs):
         profile = self.context.get('profile')
-        if not profile.first_name or profile.first_name != self.validated_data.get('name'):
+        if not profile.first_name or profile.first_name != self.validated_data.get('first_name'):
             profile.first_name = self.validated_data.get('name')
-        # if not profile.last_name:
-        #     profile.last_name = self.validated_data.get('last_name')
+        if not profile.last_name or profile.last_name != self.validated_data.get('last_name'):
+            profile.last_name = self.validated_data.get('last_name')
         profile.save()
         return profile

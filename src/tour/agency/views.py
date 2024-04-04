@@ -260,8 +260,8 @@ class ConfirmBookingAPIView(GenericAPIView):
         data = {
             'phone_number': user.phone_number,
         }
-        if user.first_name:
-            data.update({'name': user.first_name})
+        if user.first_name and user.last_name:
+            data.update({'first_name': user.first_name, 'last_name': user.last_name})
         return Response(data)
 
     def post(self, request, pk):
