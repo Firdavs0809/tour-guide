@@ -4,7 +4,7 @@ from .views import TourPackageListAPIView, TourPackageDetailAPIView, TourPackage
     GetFeaturedToursAPIView, GetFiltersAPIView, GetPopularCityAPIView, GetCityFeaturesAPIView, ExcludeExpiredPackages, \
     SetAgencyIdAPIView, CategoryListAPIView, OptoinsListAPIView, GetTourPackageCategoryAPIView, \
     GetTourPackageOptionsAPIView, HotelsDetailAPIView, CategoryDetailAPIView, OptionsDetailAPIView, \
-    GetTourPackageHotelsAPIView,GetCountryMatchAPIView
+    GetTourPackageHotelsAPIView, GetCountryMatchAPIView, BookForOtherAPIView
 
 urlpatterns = [
     # gives the top package to a city(default)
@@ -19,6 +19,7 @@ urlpatterns = [
     # before creating any instance that has image field, that view should be visited. (uploads the image to s3)
     path('image-upload/', ImageUploadView.as_view(), name='image-upload'),
     path('packages/<int:pk>/confirm-booking/', ConfirmBookingAPIView.as_view(), name='confirm-booking'),
+    path('packages/<int:pk>/book-for-other/', BookForOtherAPIView.as_view(), name='book-for-other'),
 
     # get related tours in the detail view
     path('packages/<int:pk>/related-tours/city/', GetRelatedToursCityAPIView.as_view(), name='related-tours-city'),

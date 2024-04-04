@@ -18,6 +18,7 @@ from .serializers import ConfirmBookingSerializer, CompanySerializer, FeatureSer
     HotelListSerializer
 from .utils import send_message
 from .custom_pagination import CustomPagination, CustomCursorPagination
+from ..user.models import Profile
 
 
 class ExcludeExpiredPackages(GenericAPIView):
@@ -288,13 +289,64 @@ class ConfirmBookingAPIView(GenericAPIView):
             # data = serializer.data
             # data['phone_number'] = request.user.phone_number
 
-            obj.comment = request.data.get('comment', None)
+            obj.comment = request.data.get('comment', '')
             obj.save()
             message = (f"You have a client!\n"
                        f"Tour package: {package.title}\n"
                        f"user: {profile.first_name} {profile.last_name}\n"
                        f"username: @fredo\n"
                        f"phone_number: +{request.user.phone_number}\n"
+                       f"comment: {obj.comment.title()[:50]}")
+
+            try:
+                send_message(message, package.agency.chat_id)
+            except:
+                raise ValidationError({'detail': "Agency is not a member of the bot."})
+
+            # return Response({'agency': data})
+            return Response({'detail': 'ok', 'message': _('Successfully booked!')})
+        raise ValidationError({'success': False, 'message': _("Something went wrong. Please contact support!")})
+
+
+class BookForOtherAPIView(GenericAPIView):
+    serializer_class = ConfirmBookingSerializer
+    permission_classes = (AllowAny,)
+
+    def post(self, request, pk):
+
+        try:
+            profile = Profile.objects.get(phone_number=request.data.get('phone_number'))
+        except Profile.DoesNotExist:
+            raise ValidationError({"success": False, "detail": "User with that phone number doesn't exist!"})
+
+        serializer = self.serializer_class(data=request.data, context={'profile': profile})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        try:
+            package = TourPackage.objects.get(pk=pk)
+        except TourPackage.DoesNotExist:
+            raise ValidationError({"success": False, "detail": "Tour Package not Found"})
+
+        if package not in profile.packages.all():
+            profile.packages.add(package)
+        else:
+            raise ValidationError({"success": False, "message": _("You have already booked that tour.")})
+
+        (obj, created) = Booking.objects.get_or_create(package=package, profile=profile)
+        if created:
+
+            # serializer = CompanySerializer(package.agency)
+            # data = serializer.data
+            # data['phone_number'] = request.user.phone_number
+
+            obj.comment = request.data.get('comment', '')
+            obj.save()
+            message = (f"You have a client!\n"
+                       f"Tour package: {package.title}\n"
+                       f"user: {profile.first_name} {profile.last_name}\n"
+                       f"username: @fredo\n"
+                       f"phone_number: +{profile.phone_number}\n"
                        f"comment: {obj.comment.title()[:50]}")
 
             try:
