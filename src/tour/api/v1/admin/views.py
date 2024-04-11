@@ -157,7 +157,7 @@ class HotelCreateAPIView(CreateAPIView):
         serializer.save()
         data = {
             'success': True,
-            'message': _("Hotel is created successfully!")
+            'data': serializer.data
         }
         return Response(data=data, status=status.HTTP_201_CREATED)
 

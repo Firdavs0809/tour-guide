@@ -159,7 +159,7 @@ class TourPackageCreateSerializer(serializers.ModelSerializer):
     hotels = serializers.ListField(required=True)
     images = serializers.ListField(required=True)
     airport_from = serializers.CharField(required=True)
-    airport_to = serializers.CharField(required=True)
+    airport_to = serializers.CharField(required=False)
     options = serializers.ListField(required=True)
 
     class Meta:

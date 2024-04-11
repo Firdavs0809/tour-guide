@@ -51,6 +51,10 @@ class CompanySerializer(serializers.ModelSerializer):
 
 
 class HotelSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(required=True)
+    stars = serializers.IntegerField(required=True)
+    link = serializers.CharField(required=True)
+
     class Meta:
         model = Hotel
         fields = "__all__"
