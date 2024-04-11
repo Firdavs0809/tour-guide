@@ -13,7 +13,7 @@ urlpatterns = [
 
     # get agency details
     path('agency/', AgencyListAPIView.as_view(), name='get-agency-list'),
-    path('agency/me', AgencyMeAPIView.as_view(), name='agency-me'),
+    path('agency/me/', AgencyMeAPIView.as_view(), name='agency-me'),
     path('agency/waiting/', AgencyListWaitingAPIView.as_view(), name='get-agency-waiting'),
     path('agency/<int:pk>/', AgencyUpdateDestroyAPIView.as_view(), name='agency-destroy-update'),
 
