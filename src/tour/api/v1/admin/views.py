@@ -106,6 +106,8 @@ class AgencyAcceptAPIView(GenericAPIView):
         if not agency.is_verified and agency.is_waiting:
             agency.is_verified = True
             agency.is_waiting = False
+            agency.admin.is_staff = True
+            agency.admin.save()
             agency.save()
             data = {'success': True, 'message': _(f'Agency: {agency.name} - is successfully verified.')}
         return Response(data=data)

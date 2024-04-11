@@ -1,6 +1,4 @@
 from datetime import timedelta, datetime
-
-import pandas
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
