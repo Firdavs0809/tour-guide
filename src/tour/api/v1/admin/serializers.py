@@ -154,8 +154,8 @@ class TourPackageCreateSerializer(serializers.ModelSerializer):
     city_from = serializers.IntegerField(required=True)
     city_to = serializers.IntegerField(required=True)
     activities = serializers.ListField(required=False)
-    # destinations = serializers.ListField(required=False)
-    # category = serializers.ListField(required=True)
+    destinations = serializers.ListField(required=False)
+    category = serializers.ListField(required=False)
     hotels = serializers.ListField(required=True)
     images = serializers.ListField(required=True)
     # airport_from = serializers.CharField(required=True)
@@ -253,7 +253,7 @@ class TourPackageCreateSerializer(serializers.ModelSerializer):
                 city_to_id=validated_data.get('city_to')
             )
 
-            category = validated_data.get('category')[0].split(',')
+            # category = validated_data.get('category')[0].split(',')
             options = validated_data.get('options')[0].split(',')
             hotels = validated_data.get('hotels')[0].split(',')
             images = validated_data.get('images')[0].split(',')
@@ -270,14 +270,14 @@ class TourPackageCreateSerializer(serializers.ModelSerializer):
                     package.images = [image]
                     package.image = image
 
-            for each_category in category:
-                try:
-                    obj = Category.objects.get(id=each_category)
-                except Exception as e:
-                    raise ValidationError(
-                        {'success': False, 'message': _(f"Category with id:{each_category} does not exist.")})
-                finally:
-                    package.category.add(obj)
+            # for each_category in category:
+            #     try:
+            #         obj = Category.objects.get(id=each_category)
+            #     except Exception as e:
+            #         raise ValidationError(
+            #             {'success': False, 'message': _(f"Category with id:{each_category} does not exist.")})
+            #     finally:
+            #         package.category.add(obj)
 
             for option in options:
                 try:
@@ -314,7 +314,8 @@ class TourPackageCreateSerializer(serializers.ModelSerializer):
         package.city_from_id = validated_data.get('city_from', package.city_from_id)
         package.city_to_id = validated_data.get('city_to', package.city_to_id)
 
-        category, options, hotels, images = validated_data.get('category')[0].split(','), validated_data.get('options')[
+        # category = validated_data.get('category')[0].split(',')
+        options, hotels, images = validated_data.get('options')[
             0].split(','), validated_data.get('hotels')[0].split(','), validated_data.get('images')[0].split(',')
 
         clone_images = package.images
@@ -335,19 +336,19 @@ class TourPackageCreateSerializer(serializers.ModelSerializer):
                 package.images = [image]
                 package.image = image
 
-        for each_category in package.category.all():
-            if each_category.id not in category:
-                package.category.remove(each_category)
-
-        for each_category in category:
-            try:
-                obj = Category.objects.get(id=each_category)
-            except Exception as e:
-                raise ValidationError(
-                    {'success': False, 'message': _(f"Category with id:{each_category} does not exist.")})
-            finally:
-                if each_category not in package.category.all():
-                    package.category.add(obj)
+        # for each_category in package.category.all():
+        #     if each_category.id not in category:
+        #         package.category.remove(each_category)
+        #
+        # for each_category in category:
+        #     try:
+        #         obj = Category.objects.get(id=each_category)
+        #     except Exception as e:
+        #         raise ValidationError(
+        #             {'success': False, 'message': _(f"Category with id:{each_category} does not exist.")})
+        #     finally:
+        #         if each_category not in package.category.all():
+        #             package.category.add(obj)
 
         for option in package.options.all():
             if option.id not in options:
