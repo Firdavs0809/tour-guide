@@ -154,12 +154,12 @@ class TourPackageCreateSerializer(serializers.ModelSerializer):
     city_from = serializers.IntegerField(required=True)
     city_to = serializers.IntegerField(required=True)
     activities = serializers.ListField(required=False)
-    destinations = serializers.ListField(required=False)
-    category = serializers.ListField(required=True)
+    # destinations = serializers.ListField(required=False)
+    # category = serializers.ListField(required=True)
     hotels = serializers.ListField(required=True)
     images = serializers.ListField(required=True)
-    airport_from = serializers.CharField(required=True)
-    airport_to = serializers.CharField(required=False)
+    # airport_from = serializers.CharField(required=True)
+    # airport_to = serializers.CharField(required=False)
     options = serializers.ListField(required=True)
 
     class Meta:
@@ -247,8 +247,8 @@ class TourPackageCreateSerializer(serializers.ModelSerializer):
                 starting_date=validated_data.get('starting_date'),
                 ending_date=validated_data.get('ending_date'),
                 price=validated_data.get('price'),
-                airport_from=validated_data.get('airport_from'),
-                airport_to=validated_data.get('airport_to'),
+                airport_from=validated_data.get('airport_from', None),
+                airport_to=validated_data.get('airport_to', None),
                 city_from_id=validated_data.get('city_from'),
                 city_to_id=validated_data.get('city_to')
             )
