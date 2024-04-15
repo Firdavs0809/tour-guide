@@ -247,8 +247,8 @@ class TourPackageCreateSerializer(serializers.ModelSerializer):
                 starting_date=validated_data.get('starting_date'),
                 ending_date=validated_data.get('ending_date'),
                 price=validated_data.get('price'),
-                airport_from=validated_data.get('airport_from', None),
-                airport_to=validated_data.get('airport_to', None),
+                # airport_from=validated_data.get('airport_from', None),
+                # airport_to=validated_data.get('airport_to', None),
                 city_from_id=validated_data.get('city_from'),
                 city_to_id=validated_data.get('city_to')
             )
@@ -308,8 +308,8 @@ class TourPackageCreateSerializer(serializers.ModelSerializer):
         package.starting_date = validated_data.get('starting_date', package.starting_date)
         package.ending_date = validated_data.get('ending_date', package.ending_date)
         package.description = validated_data.get('description', package.description)
-        package.airport_from = validated_data.get('airport_from', package.airport_from)
-        package.airport_to = validated_data.get('airport_to', package.airport_to)
+        # package.airport_from = validated_data.get('airport_from', package.airport_from)
+        # package.airport_to = validated_data.get('airport_to', package.airport_to)
         package.price = validated_data.get('price', package.price)
         package.city_from_id = validated_data.get('city_from', package.city_from_id)
         package.city_to_id = validated_data.get('city_to', package.city_to_id)
