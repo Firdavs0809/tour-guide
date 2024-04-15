@@ -21,23 +21,26 @@ class AgencyRegisterAPIView(GenericAPIView):
     permission_classes = [AllowAny, ]
     serializer_class = AgencyRegistrationSerializer
 
-    def register_user(self, serializer):
-        data = {
-            'first_name': serializer.validated_data['name'],
-            'phone_number': serializer.validated_data['phone_number'],
-            'password': serializer.validated_data['password']
-        }
-        return requests.post(serializer.validated_data.pop('registration_url'), data=data).json()
+    # def register_user(self, serializer):
+    #     data = {
+    #         'first_name': serializer.validated_data['name'],
+    #         'phone_number': serializer.validated_data['phone_number'],
+    #         'password': serializer.validated_data['password']
+    #     }
+    #     return requests.post(serializer.validated_data.pop('registration_url'), data=data).json()
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
-        serializer.validated_data['registration_url'] = request.build_absolute_uri(reverse('api:auth-registration'))
-        response = self.register_user(serializer)
-        if response.get('activation_code', None):
-            serializer.save()
-            return Response(response, status=status.HTTP_201_CREATED)
-        return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+        # serializer.validated_data['registration_url'] = request.build_absolute_uri(reverse('api:auth-registration'))
+        # response = self.register_user(serializer)
+        # if response.get('activation_code', None):
+        #     serializer.save()
+        #     return Response(response, status=status.HTTP_201_CREATED)
+
+        return Response({'success': True, 'message': _('Company created successfully!')},
+                        status=status.HTTP_201_CREATED)
 
 
 class AgencyRegistrationActivationAPIView(GenericAPIView):

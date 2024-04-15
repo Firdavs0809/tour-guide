@@ -28,9 +28,14 @@ class AgencyRegistrationSerializer(serializers.Serializer):
                                            validators=[phone_regex])
 
     def validate(self, attrs):
+        try:
+            user = User.objects.get(phone_number=attrs.get('phone_number'))
+            self.context['user'] = user
+        except User.DoesNotExist:
+            raise ValidationError({'success': False, 'message': 'User phone_number should be confirmed first.'})
 
-        if User.objects.filter(phone_number__iexact=attrs.get('phone_number')).exists():
-            raise serializers.ValidationError({'phone_number': [_('already exist this phone_number')]})
+        if Company.objects.filter(admin=user).first():
+            raise ValidationError({'success': False, 'message': 'Company exist with this number.'})
 
         validate_password(attrs.get('password'))
         return attrs
@@ -47,7 +52,7 @@ class AgencyRegistrationSerializer(serializers.Serializer):
             raise ValidationError({'detail': message})
         return tg_username
 
-    def save(self, **kwargs):
+    def save_temp(self, **kwargs):
         tmp = self.getTempObject()
         if not tmp:
             try:
@@ -67,6 +72,44 @@ class AgencyRegistrationSerializer(serializers.Serializer):
                     f"{str(error).split('(')[1].replace(')=', '')} already registered for another company.")
                 raise ValidationError({'detail': error_message})
         return tmp
+
+    def save(self, **kwargs):
+        self.save_temp(**kwargs)
+
+        tmp = TempCompany.objects.filter(phone_number="+" + self.validated_data.get('phone_number').replace('+', ''),
+                                         is_verified=False).first()
+        if not tmp:
+            raise ValidationError(
+                {'detail': _('Phone number is invalid. Please try the phone number used in registration!')})
+        with transaction.atomic():
+            try:
+                agency = Company.objects.create(
+                    admin=self.context.get('user'),
+                    phone_number_2=tmp.phone_number_2,
+                    licence_number=tmp.licence_number,
+                    licence=tmp.licence,
+                    tg_username=tmp.tg_username,
+                    website=tmp.website,
+                    address=tmp.address,
+                    name=tmp.name
+                )
+
+            except IntegrityError as e:
+                if "UNIQUE constraint" in e.args:
+                    error_message = "Please take a look at the Naming of the company that company already exists."
+                else:
+                    error_message = 'Error occurred during creation please contact support!'
+                raise ValidationError(error_message)
+            except User.DoesNotExist:
+                error_message = 'Company admin account not activated successfully!'
+                raise ValidationError(error_message)
+
+            # agency.is_waiting = True
+            # agency.save()
+            tmp.is_verified = True
+            tmp.save()
+            return agency
+        return None
 
     def getTempObject(self, ):
         try:
