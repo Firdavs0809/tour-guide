@@ -19,7 +19,7 @@ class AgencyRegistrationSerializer(serializers.Serializer):
     phone_number = serializers.CharField(required=True)
     password = serializers.CharField(max_length=30, required=True, write_only=True)
     name = serializers.CharField(max_length=56, required=True, )
-    licence_number = serializers.CharField(required=True, max_length=12, )
+    licence_number = serializers.CharField(required=True)
     licence = serializers.CharField(max_length=255, required=True)
     address = serializers.CharField(required=True, max_length=95, )
     tg_username = serializers.CharField(required=True, max_length=32, min_length=5)
@@ -32,10 +32,10 @@ class AgencyRegistrationSerializer(serializers.Serializer):
             user = User.objects.get(phone_number=attrs.get('phone_number'))
             self.context['user'] = user
         except User.DoesNotExist:
-            raise ValidationError({'success': False, 'message': 'User phone_number should be confirmed first.'})
+            raise ValidationError({'success': False, 'detail': 'User phone_number should be confirmed first.'})
 
         if Company.objects.filter(admin=user).first():
-            raise ValidationError({'success': False, 'message': 'Company exist with this number.'})
+            raise ValidationError({'success': False, 'detail': 'Company exist with this number.'})
 
         validate_password(attrs.get('password'))
         return attrs
@@ -44,6 +44,9 @@ class AgencyRegistrationSerializer(serializers.Serializer):
         return address
 
     def validate_licence_number(self, licence_number):
+        if len(licence_number) > 12:
+            message = _("Licence number is not more than 12 characters long.")
+            raise ValidationError({'detail': message})
         return licence_number
 
     def validate_tg_username(self, tg_username):
