@@ -371,8 +371,8 @@ class GetCityMatchAPIView(GenericAPIView):
 
         if city:
             # start_with is highest priority(1)
-            city_list += [city.name for city in City.objects.filter(Q(name__istartswith=city)) if
-                          city.name not in city_list]
+            city_list += [{'name': city.name, 'id': city.id} for city in City.objects.filter(Q(name__istartswith=city))
+                          if {'name': city.name, 'id': city.id} not in city_list]
 
             q = QUERY(
                 "multi_match",
@@ -384,18 +384,20 @@ class GetCityMatchAPIView(GenericAPIView):
             try:
                 search = CityDocument.search().query(q)
                 response = search.execute()
-                city_list += [city.name for city in search if city.name not in city_list]
+                city_list += [{'name': city.name, 'id': city.id} for city in search if
+                              {'name': city.name, 'id': city.id} not in city_list]
             except Exception as e:
                 print(e)
 
-            city_list += [city.name for city in City.objects.filter(Q(name__icontains=city)) if
-                          city.name not in city_list]
+            city_list += [{'name': city.name, 'id': city.id} for city in City.objects.filter(Q(name__icontains=city)) if
+                          {'name': city.name, 'id': city.id} not in city_list]
 
         if country:
             country = get_object_or_404(Country, name=country)
-            city_list_by_country = [city.name for city in country.cities.all()]
+            city_list_by_country = [{'name': city.name, 'id': city.id} for city in country.cities.all()]
             if city:
-                temp = [city for city in city_list if city in city_list_by_country]
+                temp = [{'name': city.name, 'id': city.id} for {'name': city.name, 'id': city.id} in city_list if
+                        {'name': city.name, 'id': city.id} in city_list_by_country]
                 city_list = temp
             else:
                 city_list = city_list_by_country
