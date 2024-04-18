@@ -219,7 +219,7 @@ class TourPackageCreateSerializer(serializers.ModelSerializer):
 
     def validate_title(self, title):
         message = None
-        if len(title) < 5:
+        if len(title) < 4:
             message = _("Invalid title. Consider giving a descriptive name for the Tour.")
         if message:
             raise ValidationError({'success': False, 'message': message})
@@ -269,7 +269,7 @@ class TourPackageCreateSerializer(serializers.ModelSerializer):
         if price <= 0:
             raise ValidationError({'success': False, 'message': _(
                 "Invalid price tag. Price should be non negative number.")})
-        if price >= 5000:
+        if price >= 10000000:
             raise ValidationError({'success': False, 'message': _(
                 "Invalid price tag. Please consider entering realistic price.")})
         return price
