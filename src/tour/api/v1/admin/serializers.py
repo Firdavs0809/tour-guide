@@ -6,10 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from tour.agency.models import Company, TempCompany, TourPackage, Category, Options, Hotel, City
-
 from tour.user.models import User
-import requests
-
 from tour.agency.utils import check_username_exists
 
 phone_regex = RegexValidator(regex=r'^\+?1?\d{9,12}$', message='invalid phone number')

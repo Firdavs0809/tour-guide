@@ -9,7 +9,7 @@ from rest_framework.generics import ListAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from .models import TourPackage, Company, Booking, Hotel
-from .serializers import TourPackageSerializer, ImageUploadSerializer, TourPackageSerializerList
+from .serializers import TourPackageSerializer, ImageUploadSerializer, TourPackageSerializerList, CitySerializer
 from .models import City, Options, Category, Country
 from .serializers import ConfirmBookingSerializer, CompanySerializer, FeatureSerializer, PopularCitySerializer, \
     OptionsSerializer, CategorySerializer, HotelSerializer, DestinationSerializer, ActivitySerializer, \
@@ -371,8 +371,8 @@ class GetCityMatchAPIView(GenericAPIView):
 
         if city:
             # start_with is highest priority(1)
-            city_list += [city.name for city in City.objects.filter(Q(name__istartswith=city)) if
-                          city.name not in city_list]
+            city_list += [city for city in City.objects.filter(Q(name__istartswith=city)) if
+                          city not in city_list]
 
             q = QUERY(
                 "multi_match",
@@ -384,23 +384,23 @@ class GetCityMatchAPIView(GenericAPIView):
             try:
                 search = CityDocument.search().query(q)
                 response = search.execute()
-                city_list += [city.name for city in search if city.name not in city_list]
+                city_list += [city for city in search if city not in city_list]
             except Exception as e:
                 print(e)
 
-            city_list += [city.name for city in City.objects.filter(Q(name__icontains=city)) if
-                          city.name not in city_list]
+            city_list += [city for city in City.objects.filter(Q(name__icontains=city)) if
+                          city not in city_list]
 
         if country:
             country = get_object_or_404(Country, name=country)
-            city_list_by_country = [city.name for city in country.cities.all()]
+            city_list_by_country = [city for city in country.cities.all()]
             if city:
                 temp = [city for city in city_list if city in city_list_by_country]
                 city_list = temp
             else:
                 city_list = city_list_by_country
 
-        return Response({"city_list": city_list})
+        return Response({"city_list": CitySerializer(city_list, many=True).data})
 
 
 class GetCountryMatchAPIView(GenericAPIView):
