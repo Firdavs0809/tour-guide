@@ -211,5 +211,5 @@ class AgencyPackageListAPIView(ListAPIView):
     pagination_class = CustomPagination
 
     def get_queryset(self):
-        packages = TourPackage.objects.filter(agency=self.request.user)
+        packages = TourPackage.objects.filter(agency=self.request.user.agency)
         return packages
