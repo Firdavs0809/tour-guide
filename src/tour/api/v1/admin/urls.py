@@ -3,7 +3,7 @@ from django.urls import path
 from .views import AgencyRegisterAPIView, AgencyRegistrationActivationAPIView, TourPackageCreateAPIView, \
     AgencyUpdateDestroyAPIView, AgencyListAPIView, TourPackageCreateNotifyAPIView, \
     TourPackageRetrieveUpdateDestroyAPIView, AgencyListWaitingAPIView, AgencyMeAPIView, AgencyAcceptAPIView, \
-    HotelCreateAPIView
+    HotelCreateAPIView, AgencyPackageListAPIView
 from tour.api.v1.auth.views import SignInView
 
 urlpatterns = [
@@ -20,6 +20,7 @@ urlpatterns = [
     # accept company
     path('agency/<int:pk>/accept/', AgencyAcceptAPIView.as_view(), name='agency-accept'),
 
+    path('agency/packages/', AgencyPackageListAPIView.as_view(), name='agency-packages'),
     path('agency/packages/create/', TourPackageCreateAPIView.as_view(), name='package-create'),
     path('agency/hotels/create/', HotelCreateAPIView.as_view(), name='hotel-create'),
     path('agency/packages/<int:pk>/', TourPackageRetrieveUpdateDestroyAPIView.as_view(),

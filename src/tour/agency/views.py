@@ -39,17 +39,6 @@ class TourPackageListAPIView(ListAPIView):
         return packages
 
 
-class AgencyPackageListAPIView(ListAPIView):
-    queryset = TourPackage.objects.all()
-    serializer_class = TourPackageSerializerList
-    permission_classes = (IsAuthenticated,)
-    pagination_class = CustomPagination
-
-    def get_queryset(self):
-        packages = TourPackage.objects.filter(agency=self.request.user)
-        return packages
-
-
 class TourPackageDetailAPIView(RetrieveAPIView):
     queryset = TourPackage.objects.all()
     serializer_class = TourPackageSerializer
