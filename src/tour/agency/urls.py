@@ -4,11 +4,12 @@ from .views import TourPackageListAPIView, TourPackageDetailAPIView, TourPackage
     GetFeaturedToursAPIView, GetFiltersAPIView, GetPopularCityAPIView, GetCityFeaturesAPIView, ExcludeExpiredPackages, \
     SetAgencyIdAPIView, CategoryListAPIView, OptoinsListAPIView, GetTourPackageCategoryAPIView, \
     GetTourPackageOptionsAPIView, HotelsDetailAPIView, CategoryDetailAPIView, OptionsDetailAPIView, \
-    GetTourPackageHotelsAPIView, GetCountryMatchAPIView, BookForOtherAPIView
+    GetTourPackageHotelsAPIView, GetCountryMatchAPIView, BookForOtherAPIView, AgencyPackageListAPIView
 
 urlpatterns = [
     # gives the top package to a city(default)
     path('packages/top/', TourPackageListAPIView.as_view(), name='package-top'),
+    path('packages/', AgencyPackageListAPIView.as_view(), name='agency-packages'),
 
     # package detail
     path('packages/<int:pk>/', TourPackageDetailAPIView.as_view(), name='package-detail'),

@@ -297,9 +297,9 @@ class TourPackageCreateSerializer(serializers.ModelSerializer):
             )
 
             # category = validated_data.get('category')[0].split(',')
-            options = validated_data.get('options')[0].split(',')
-            hotels = validated_data.get('hotels')[0].split(',')
-            images = validated_data.get('images')[0].split(',')
+            options = validated_data.get('options')[0].replace('[', '').replace(']', '').split(',')
+            hotels = validated_data.get('hotels')[0].replace('[', '').replace(']', '').split(',')
+            images = validated_data.get('images')[0].replace('[', '').replace(']', '').split(',')
 
             for image in images:
                 allowed_image_format = ['jpg', 'jpeg', 'png', 'avif', 'gif']
