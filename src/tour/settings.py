@@ -177,10 +177,10 @@ STORAGES = {
     }
 }
 
-ELASTICSEARCH_DSL = {
-    "default": {
-        "hosts": "https://localhost:9200",
-        "http_auth": (os.getenv('ELASTIC_USER'), os.getenv('ELASTIC_PASSWORD')),
-        "ca_certs": os.getenv('CA_CERTS'),
-    }
-}
+# ELASTICSEARCH_DSL = {
+#     "default": {
+#         "hosts": "https://localhost:9200",
+#         "http_auth": (os.getenv('ELASTIC_USER'), os.getenv('ELASTIC_PASSWORD')),
+#         "ca_certs": os.getenv('CA_CERTS'),
+#     }
+# }
