@@ -76,6 +76,7 @@ class SendSMSThread(threading.Thread):
                 'Authorization': f"Bearer {token}"
             }
             response = requests.post(url="http://notify.eskiz.uz/api/message/sms/send", headers=headers, data=payload)
+            print(response.json())
             return response.json()
 
 

@@ -11,6 +11,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from ....agency.utils import send_sms
 from ....user.models import Sms, User, Temp
 
 phone_regex = RegexValidator(regex=r'^\+?1?\d{9,12}$', message='invalid phone number')
@@ -67,6 +68,8 @@ class RegistrationSerializer(serializers.Serializer):
             )
             temp.save()
         sms = self.createSmsObject(temp, sms_code)
+        # sending sms implemented
+        send_sms(phone_number=temp.phone_number, code=sms.code)
         return temp
 
 

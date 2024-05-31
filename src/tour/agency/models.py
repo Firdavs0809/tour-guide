@@ -49,7 +49,8 @@ class Company(models.Model):
     address = models.CharField(max_length=95, null=False, blank=False, default='Uzbekistan')
 
     logo = models.CharField(default="default-agency-image.png")
-    website = models.CharField(max_length=200, blank=False, null=False)
+    website = models.URLField(blank=True, null=True)
+    address_url = models.CharField(max_length=200, blank=False, null=False)
 
     average_rating = models.DecimalField(max_digits=3, decimal_places=1, editable=False, null=True, blank=True)
     total_rating = models.IntegerField(default=0, editable=False)

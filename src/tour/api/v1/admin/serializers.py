@@ -15,12 +15,14 @@ phone_regex = RegexValidator(regex=r'^\+?1?\d{9,12}$', message='invalid phone nu
 class AgencyRegistrationSerializer(serializers.Serializer):
     phone_number = serializers.CharField(required=True)
     password = serializers.CharField(max_length=30, required=True, write_only=True)
+    password_confirm = serializers.CharField(max_length=30, required=True, write_only=True)
     name = serializers.CharField(max_length=56, required=True, )
     licence_number = serializers.CharField(required=True)
     licence = serializers.CharField(max_length=255, required=True)
     address = serializers.CharField(required=True, max_length=95, )
     tg_username = serializers.CharField(required=True, max_length=32, min_length=5)
     website = serializers.CharField(max_length=200, required=False)
+    address_url = serializers.URLField(required=True)
     phone_number_2 = serializers.CharField(max_length=13, min_length=12, required=True, write_only=True,
                                            validators=[phone_regex])
 
@@ -32,9 +34,11 @@ class AgencyRegistrationSerializer(serializers.Serializer):
             raise ValidationError({'success': False, 'detail': 'User phone_number should be confirmed first.'})
 
         if Company.objects.filter(admin=user).first():
-            raise ValidationError({'success': False, 'detail': 'Company exist with this number.'})
+            raise ValidationError({'success': False, 'detail': 'Company exist with this number.fdfdf'})
 
         validate_password(attrs.get('password'))
+        if not attrs.get('password_confirm') or attrs.get('password_confirm') != attrs.get('password'):
+            raise ValidationError({'success': False, 'detail': 'Password not match'})
         return attrs
 
     def validate_address(self, address):
